@@ -52,4 +52,10 @@ public class RunService {
     public Page<Run> findByGame(String game, Pageable pageable) {
         return runRepository.findByGameIgnoreCase(game, pageable);
     }
+
+    public void deleteRun(Long id) {
+        var run = runRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Run not found"));
+        runRepository.delete(run);
+    }
 }

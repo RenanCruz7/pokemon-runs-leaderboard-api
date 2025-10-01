@@ -49,4 +49,11 @@ public class RunController {
         var runs = runService.findByGame(game, pageable);
         return ResponseEntity.ok(runs);
     }
+
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity deleteRun(@PathVariable Long id) {
+        runService.deleteRun(id);
+        return ResponseEntity.noContent().build();
+    }
 }
