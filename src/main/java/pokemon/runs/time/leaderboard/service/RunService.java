@@ -1,10 +1,16 @@
 package pokemon.runs.time.leaderboard.service;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pokemon.runs.time.leaderboard.domain.Run;
 import pokemon.runs.time.leaderboard.dto.CreateRunDTO;
+import pokemon.runs.time.leaderboard.dto.PatchRunDTO;
 import pokemon.runs.time.leaderboard.repository.RunRepository;
+
+import java.time.Duration;
 
 @Service
 public class RunService {
@@ -13,6 +19,33 @@ public class RunService {
 
     public Run createRun(CreateRunDTO data) {
         Run run = new Run(data);
+        return runRepository.save(run);
+    }
+
+    public Page<Run> getAllRuns(Pageable pageable) {
+        return runRepository.findAll(pageable);
+    }
+
+    public Run updateRun(Long id, @Valid PatchRunDTO data) {
+        var run = runRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Run not found"));
+
+        if (data.game() != null) {
+            run.setGame(data.game());
+        }
+        if (data.runTime() != null) {
+            run.setRunTime(Duration.parse(data.runTime()));
+        }
+        if (data.pokedexStatus() >= run.getPokedexStatus()) {
+            run.setPokedexStatus(data.pokedexStatus());
+        }
+        if (data.pokemonTeam() != null) {
+            run.setPokemonTeam(data.pokemonTeam());
+        }
+        if (data.observation() != null) {
+            run.setObservation(data.observation());
+        }
+
         return runRepository.save(run);
     }
 }
