@@ -56,4 +56,34 @@ public class RunController {
         runService.deleteRun(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<DetailsRunDTO> getRunById(@PathVariable Long id) {
+        var run = runService.findById(id);
+        return ResponseEntity.ok(new DetailsRunDTO(run));
+    }
+
+    @GetMapping("/fastest")
+    public ResponseEntity<Page<DetailsRunDTO>> getFastestRuns(
+            @RequestParam String maxTime,
+            @PageableDefault(size = 10, sort = "runTime") Pageable pageable) {
+        var runs = runService.findFastestRuns(maxTime, pageable);
+        return ResponseEntity.ok(runs.map(DetailsRunDTO::new));
+    }
+
+    @GetMapping("/pokedex")
+    public ResponseEntity<Page<DetailsRunDTO>> getByPokedexStatus(
+            @RequestParam int minStatus,
+            @PageableDefault(size = 10, sort = "pokedexStatus", direction = Sort.Direction.DESC) Pageable pageable) {
+        var runs = runService.findByMinPokedexStatus(minStatus, pageable);
+        return ResponseEntity.ok(runs.map(DetailsRunDTO::new));
+    }
+
+    @GetMapping("/team")
+    public ResponseEntity<Page<DetailsRunDTO>> getByPokemonInTeam(
+            @RequestParam String pokemon,
+            @PageableDefault(size = 10) Pageable pageable) {
+        var runs = runService.findByPokemonInTeam(pokemon, pageable);
+        return ResponseEntity.ok(runs.map(DetailsRunDTO::new));
+    }
 }

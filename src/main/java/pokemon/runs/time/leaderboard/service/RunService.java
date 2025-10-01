@@ -58,4 +58,22 @@ public class RunService {
                 .orElseThrow(() -> new RuntimeException("Run not found"));
         runRepository.delete(run);
     }
+
+    public Run findById(Long id) {
+        return runRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Run not found"));
+    }
+
+    public Page<Run> findFastestRuns(String maxTime, Pageable pageable) {
+        Duration maxDuration = Duration.parse(maxTime);
+        return runRepository.findFastestRuns(maxDuration, pageable);
+    }
+
+    public Page<Run> findByMinPokedexStatus(int minStatus, Pageable pageable) {
+        return runRepository.findByMinPokedexStatus(minStatus, pageable);
+    }
+
+    public Page<Run> findByPokemonInTeam(String pokemon, Pageable pageable) {
+        return runRepository.findByPokemonInTeam(pokemon, pageable);
+    }
 }
