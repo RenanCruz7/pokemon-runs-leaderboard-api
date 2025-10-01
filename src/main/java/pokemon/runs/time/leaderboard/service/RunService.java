@@ -48,4 +48,8 @@ public class RunService {
 
         return runRepository.save(run);
     }
+
+    public Page<Run> findByGame(String game, Pageable pageable) {
+        return runRepository.findByGameIgnoreCase(game, pageable);
+    }
 }

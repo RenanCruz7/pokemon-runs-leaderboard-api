@@ -41,4 +41,12 @@ public class RunController {
         var run = runService.updateRun(id, data);
         return ResponseEntity.ok(new DetailsRunDTO(run));
     }
+
+    @GetMapping("/game/{game}")
+    public ResponseEntity<Page<Run>> getRunsByGame(
+            @PathVariable String game,
+            @PageableDefault(size = 10) Pageable pageable) {
+        var runs = runService.findByGame(game, pageable);
+        return ResponseEntity.ok(runs);
+    }
 }
