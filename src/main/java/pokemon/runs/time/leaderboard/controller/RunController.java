@@ -13,7 +13,12 @@ import pokemon.runs.time.leaderboard.domain.Run;
 import pokemon.runs.time.leaderboard.dto.CreateRunDTO;
 import pokemon.runs.time.leaderboard.dto.DetailsRunDTO;
 import pokemon.runs.time.leaderboard.dto.PatchRunDTO;
+import pokemon.runs.time.leaderboard.dto.TopPokemonDTO;
+import pokemon.runs.time.leaderboard.dto.RunsCountByGameDTO;
+import pokemon.runs.time.leaderboard.dto.AvgRunTimeByGameDTO;
 import pokemon.runs.time.leaderboard.service.RunService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/runs")
@@ -89,17 +94,17 @@ public class RunController {
     }
 
     @GetMapping("/stats/count-by-game")
-    public ResponseEntity<java.util.Map<String, Long>> getRunsCountByGame() {
+    public ResponseEntity<List<RunsCountByGameDTO>> getRunsCountByGame() {
         return ResponseEntity.ok(runService.getRunsCountByGame());
     }
 
     @GetMapping("/stats/avg-time-by-game")
-    public ResponseEntity<java.util.Map<String, Double>> getAvgRunTimeByGame() {
+    public ResponseEntity<List<AvgRunTimeByGameDTO>> getAvgRunTimeByGame() {
         return ResponseEntity.ok(runService.getAvgRunTimeByGame());
     }
 
     @GetMapping("/stats/top-pokemons")
-    public ResponseEntity<java.util.List<java.util.Map<String, Object>>> getTopPokemonsUsed() {
+    public ResponseEntity<List<TopPokemonDTO>> getTopPokemonsUsed() {
         return ResponseEntity.ok(runService.getTopPokemonsUsed());
     }
 }
