@@ -17,6 +17,12 @@ public interface RunRepository extends JpaRepository<Run, Long> {
     @Query("SELECT r FROM runs r WHERE r.pokedexStatus >= :minStatus")
     Page<Run> findByMinPokedexStatus(int minStatus, Pageable pageable);
 
-    @Query("SELECT r FROM runs r WHERE r.pokemonTeam LIKE %:pokemon%")
+    @Query(
+            value = "SELECT * FROM runs r WHERE r.pokemon_team ILIKE CONCAT('%', :pokemon, '%')",
+            nativeQuery = true
+    )
     Page<Run> findByPokemonInTeam(String pokemon, Pageable pageable);
+
+
+
 }
