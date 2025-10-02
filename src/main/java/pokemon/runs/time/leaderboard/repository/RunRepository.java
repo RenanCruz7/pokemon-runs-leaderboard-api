@@ -23,6 +23,14 @@ public interface RunRepository extends JpaRepository<Run, Long> {
     )
     Page<Run> findByPokemonInTeam(String pokemon, Pageable pageable);
 
+    @Query("SELECT r.game, COUNT(r) FROM runs r GROUP BY r.game")
+    java.util.List<Object[]> countRunsByGame();
+
+    @Query("SELECT r.game, AVG(r.runTime) FROM runs r GROUP BY r.game")
+    java.util.List<Object[]> avgRunTimeByGame();
+
+    @Query(value = "SELECT pokemon, COUNT(*) as count FROM (SELECT unnest(string_to_array(pokemon_team, ',')) as pokemon FROM runs) as team GROUP BY pokemon ORDER BY count DESC LIMIT 10", nativeQuery = true)
+    java.util.List<Object[]> topPokemonsUsed();
 
 
 }

@@ -87,4 +87,19 @@ public class RunController {
         var runs = runService.findByPokemonInTeam(pokemon, pageable);
         return ResponseEntity.ok(runs.map(DetailsRunDTO::new));
     }
+
+    @GetMapping("/stats/count-by-game")
+    public ResponseEntity<java.util.Map<String, Long>> getRunsCountByGame() {
+        return ResponseEntity.ok(runService.getRunsCountByGame());
+    }
+
+    @GetMapping("/stats/avg-time-by-game")
+    public ResponseEntity<java.util.Map<String, Double>> getAvgRunTimeByGame() {
+        return ResponseEntity.ok(runService.getAvgRunTimeByGame());
+    }
+
+    @GetMapping("/stats/top-pokemons")
+    public ResponseEntity<java.util.List<java.util.Map<String, Object>>> getTopPokemonsUsed() {
+        return ResponseEntity.ok(runService.getTopPokemonsUsed());
+    }
 }

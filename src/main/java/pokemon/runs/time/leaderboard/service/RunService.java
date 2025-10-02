@@ -76,4 +76,34 @@ public class RunService {
     public Page<Run> findByPokemonInTeam(String pokemon, Pageable pageable) {
         return runRepository.findByPokemonInTeam(pokemon, pageable);
     }
+
+    public java.util.Map<String, Long> getRunsCountByGame() {
+        var result = runRepository.countRunsByGame();
+        java.util.Map<String, Long> map = new java.util.HashMap<>();
+        for (Object[] row : result) {
+            map.put((String) row[0], (Long) row[1]);
+        }
+        return map;
+    }
+
+    public java.util.Map<String, Double> getAvgRunTimeByGame() {
+        var result = runRepository.avgRunTimeByGame();
+        java.util.Map<String, Double> map = new java.util.HashMap<>();
+        for (Object[] row : result) {
+            map.put((String) row[0], ((Number) row[1]).doubleValue());
+        }
+        return map;
+    }
+
+    public java.util.List<java.util.Map<String, Object>> getTopPokemonsUsed() {
+        var result = runRepository.topPokemonsUsed();
+        java.util.List<java.util.Map<String, Object>> list = new java.util.ArrayList<>();
+        for (Object[] row : result) {
+            java.util.Map<String, Object> entry = new java.util.HashMap<>();
+            entry.put("pokemon", row[0]);
+            entry.put("count", row[1]);
+            list.add(entry);
+        }
+        return list;
+    }
 }
