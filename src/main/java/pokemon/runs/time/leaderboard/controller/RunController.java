@@ -19,6 +19,10 @@ import pokemon.runs.time.leaderboard.dto.AvgRunTimeByGameDTO;
 import pokemon.runs.time.leaderboard.service.RunService;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.io.IOException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 @RestController
 @RequestMapping("/runs")
@@ -106,5 +110,14 @@ public class RunController {
     @GetMapping("/stats/top-pokemons")
     public ResponseEntity<List<TopPokemonDTO>> getTopPokemonsUsed() {
         return ResponseEntity.ok(runService.getTopPokemonsUsed());
+    }
+
+    @GetMapping("/export/csv")
+    public ResponseEntity<String> exportRunsToCsv() throws IOException {
+        String csv = runService.exportRunsToCsv();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=runs.csv");
+        headers.setContentType(MediaType.TEXT_PLAIN);
+        return ResponseEntity.ok().headers(headers).body(csv);
     }
 }

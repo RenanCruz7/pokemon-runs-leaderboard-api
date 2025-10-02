@@ -98,4 +98,20 @@ public class RunService {
         }
         return list;
     }
+
+    public String exportRunsToCsv() {
+        List<Run> runs = runRepository.findAll();
+        StringBuilder sb = new StringBuilder();
+        sb.append("id,game,runTime,pokedexStatus,pokemonTeam,observation\n");
+        for (Run run : runs) {
+            sb.append(run.getId()).append(",")
+              .append(run.getGame()).append(",")
+              .append(run.getRunTime() != null ? run.getRunTime().toString() : "").append(",")
+              .append(run.getPokedexStatus()).append(",")
+              .append(run.getPokemonTeam() != null ? String.join("|", run.getPokemonTeam()) : "").append(",")
+              .append(run.getObservation() != null ? run.getObservation().replaceAll(",", " ") : "")
+              .append("\n");
+        }
+        return sb.toString();
+    }
 }
