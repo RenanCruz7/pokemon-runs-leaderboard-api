@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import pokemon.runs.time.leaderboard.domain.user.User;
 import pokemon.runs.time.leaderboard.dto.CreateRunDTO;
 import pokemon.runs.time.leaderboard.utils.DurationConverter;
 import pokemon.runs.time.leaderboard.utils.StringListConverter;
@@ -26,6 +27,10 @@ public class Run {
     @Convert(converter = StringListConverter.class)
     private List<String> pokemonTeam;
     private String observation;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
 
     public Run(CreateRunDTO data) {
