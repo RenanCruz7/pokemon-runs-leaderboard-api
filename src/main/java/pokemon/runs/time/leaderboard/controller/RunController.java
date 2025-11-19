@@ -9,7 +9,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
-import pokemon.runs.time.leaderboard.domain.Run;
+import pokemon.runs.time.leaderboard.domain.run.Run;
 import pokemon.runs.time.leaderboard.dto.CreateRunDTO;
 import pokemon.runs.time.leaderboard.dto.DetailsRunDTO;
 import pokemon.runs.time.leaderboard.dto.PatchRunDTO;

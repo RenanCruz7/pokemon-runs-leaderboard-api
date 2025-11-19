@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import pokemon.runs.time.leaderboard.domain.Run;
+import pokemon.runs.time.leaderboard.domain.run.Run;
 import pokemon.runs.time.leaderboard.dto.CreateRunDTO;
 import pokemon.runs.time.leaderboard.dto.PatchRunDTO;
 import pokemon.runs.time.leaderboard.dto.TopPokemonDTO;

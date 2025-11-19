@@ -1,4 +1,4 @@
-package pokemon.runs.time.leaderboard.domain;
+package pokemon.runs.time.leaderboard.domain.run;
 
 import jakarta.persistence.*;
 import lombok.Getter;

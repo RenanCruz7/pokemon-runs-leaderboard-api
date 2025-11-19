@@ -1,6 +1,6 @@
 package pokemon.runs.time.leaderboard.dto;
 
-import pokemon.runs.time.leaderboard.domain.Run;
+import pokemon.runs.time.leaderboard.domain.run.Run;
 
 import java.time.Duration;
 import java.util.List;
