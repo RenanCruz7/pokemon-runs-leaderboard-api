@@ -37,11 +37,6 @@ jobs:
 
     - name: Build with Maven
       run: mvn clean package -DskipTests
-      env:
-        SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/leaderboard_db
-        SPRING_DATASOURCE_USERNAME: postgres
-        SPRING_DATASOURCE_PASSWORD: postgres
-        SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
 
     - name: Run Tests
       run: mvn test
