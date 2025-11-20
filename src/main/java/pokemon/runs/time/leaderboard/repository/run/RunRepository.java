@@ -1,4 +1,4 @@
-package pokemon.runs.time.leaderboard.repository;
+package pokemon.runs.time.leaderboard.repository.run;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,10 +26,10 @@ public interface RunRepository extends JpaRepository<Run, Long> {
     )
     Page<Run> findByPokemonInTeam(String pokemon, Pageable pageable);
 
-    @Query("SELECT new pokemon.runs.time.leaderboard.dto.RunsCountByGameDTO(r.game, COUNT(r)) FROM runs r GROUP BY r.game")
+    @Query("SELECT new pokemon.runs.time.leaderboard.dto.runs.RunsCountByGameDTO(r.game, COUNT(r)) FROM runs r GROUP BY r.game")
     List<RunsCountByGameDTO> countRunsByGame();
 
-    @Query("SELECT new pokemon.runs.time.leaderboard.dto.AvgRunTimeByGameDTO(r.game, AVG(r.runTime)) FROM runs r GROUP BY r.game")
+    @Query("SELECT new pokemon.runs.time.leaderboard.dto.runs.AvgRunTimeByGameDTO(r.game, AVG(r.runTime)) FROM runs r GROUP BY r.game")
     List<AvgRunTimeByGameDTO> avgRunTimeByGame();
 
     @Query(value = "SELECT pokemon, COUNT(*) as count FROM (SELECT unnest(string_to_array(pokemon_team, ',')) as pokemon FROM runs) as team GROUP BY pokemon ORDER BY count DESC LIMIT 10", nativeQuery = true)

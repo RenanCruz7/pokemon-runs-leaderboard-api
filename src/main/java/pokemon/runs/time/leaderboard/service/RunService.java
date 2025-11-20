@@ -11,7 +11,7 @@ import pokemon.runs.time.leaderboard.dto.runs.PatchRunDTO;
 import pokemon.runs.time.leaderboard.dto.runs.TopPokemonDTO;
 import pokemon.runs.time.leaderboard.dto.runs.RunsCountByGameDTO;
 import pokemon.runs.time.leaderboard.dto.runs.AvgRunTimeByGameDTO;
-import pokemon.runs.time.leaderboard.repository.RunRepository;
+import pokemon.runs.time.leaderboard.repository.run.RunRepository;
 
 import java.util.ArrayList;
 import java.util.List;
