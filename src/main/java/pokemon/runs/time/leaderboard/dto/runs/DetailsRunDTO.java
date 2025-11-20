@@ -1,4 +1,4 @@
-package pokemon.runs.time.leaderboard.dto;
+package pokemon.runs.time.leaderboard.dto.runs;
 
 import pokemon.runs.time.leaderboard.domain.run.Run;
 

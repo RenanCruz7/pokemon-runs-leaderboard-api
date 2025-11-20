@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pokemon.runs.time.leaderboard.domain.user.User;
-import pokemon.runs.time.leaderboard.dto.CreateRunDTO;
+import pokemon.runs.time.leaderboard.dto.runs.CreateRunDTO;
 import pokemon.runs.time.leaderboard.utils.DurationConverter;
 import pokemon.runs.time.leaderboard.utils.StringListConverter;
 import java.time.Duration;

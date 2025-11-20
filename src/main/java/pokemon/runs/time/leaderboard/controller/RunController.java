@@ -10,12 +10,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import pokemon.runs.time.leaderboard.domain.run.Run;
-import pokemon.runs.time.leaderboard.dto.CreateRunDTO;
-import pokemon.runs.time.leaderboard.dto.DetailsRunDTO;
-import pokemon.runs.time.leaderboard.dto.PatchRunDTO;
-import pokemon.runs.time.leaderboard.dto.TopPokemonDTO;
-import pokemon.runs.time.leaderboard.dto.RunsCountByGameDTO;
-import pokemon.runs.time.leaderboard.dto.AvgRunTimeByGameDTO;
+import pokemon.runs.time.leaderboard.dto.runs.CreateRunDTO;
+import pokemon.runs.time.leaderboard.dto.runs.DetailsRunDTO;
+import pokemon.runs.time.leaderboard.dto.runs.PatchRunDTO;
+import pokemon.runs.time.leaderboard.dto.runs.TopPokemonDTO;
+import pokemon.runs.time.leaderboard.dto.runs.RunsCountByGameDTO;
+import pokemon.runs.time.leaderboard.dto.runs.AvgRunTimeByGameDTO;
 import pokemon.runs.time.leaderboard.service.RunService;
 
 import java.util.List;

@@ -30,7 +30,7 @@ public class User implements UserDetails {
     private String password;
     @Column(unique = true)
     private String email;
-    private String role;
+    private String role = "CUSTOMER";
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Run> runs = new ArrayList<>();
@@ -40,7 +40,7 @@ public class User implements UserDetails {
         if(this.role.equals("ADMIN")) {
             return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
         }
-        else return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        else return List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
     }
 
     @Override

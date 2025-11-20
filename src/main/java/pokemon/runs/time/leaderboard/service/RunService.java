@@ -6,11 +6,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pokemon.runs.time.leaderboard.domain.run.Run;
-import pokemon.runs.time.leaderboard.dto.CreateRunDTO;
-import pokemon.runs.time.leaderboard.dto.PatchRunDTO;
-import pokemon.runs.time.leaderboard.dto.TopPokemonDTO;
-import pokemon.runs.time.leaderboard.dto.RunsCountByGameDTO;
-import pokemon.runs.time.leaderboard.dto.AvgRunTimeByGameDTO;
+import pokemon.runs.time.leaderboard.dto.runs.CreateRunDTO;
+import pokemon.runs.time.leaderboard.dto.runs.PatchRunDTO;
+import pokemon.runs.time.leaderboard.dto.runs.TopPokemonDTO;
+import pokemon.runs.time.leaderboard.dto.runs.RunsCountByGameDTO;
+import pokemon.runs.time.leaderboard.dto.runs.AvgRunTimeByGameDTO;
 import pokemon.runs.time.leaderboard.repository.RunRepository;
 
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package pokemon.runs.time.leaderboard.dto;
+package pokemon.runs.time.leaderboard.dto.runs;
 
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;

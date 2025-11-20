@@ -5,8 +5,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import pokemon.runs.time.leaderboard.domain.run.Run;
-import pokemon.runs.time.leaderboard.dto.AvgRunTimeByGameDTO;
-import pokemon.runs.time.leaderboard.dto.RunsCountByGameDTO;
+import pokemon.runs.time.leaderboard.dto.runs.AvgRunTimeByGameDTO;
+import pokemon.runs.time.leaderboard.dto.runs.RunsCountByGameDTO;
 
 import java.time.Duration;
 import java.util.List;
