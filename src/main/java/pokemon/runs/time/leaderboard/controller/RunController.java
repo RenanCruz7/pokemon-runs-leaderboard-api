@@ -6,10 +6,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import pokemon.runs.time.leaderboard.domain.run.Run;
+import pokemon.runs.time.leaderboard.domain.user.User;
 import pokemon.runs.time.leaderboard.dto.runs.CreateRunDTO;
 import pokemon.runs.time.leaderboard.dto.runs.DetailsRunDTO;
 import pokemon.runs.time.leaderboard.dto.runs.PatchRunDTO;
@@ -19,8 +23,6 @@ import pokemon.runs.time.leaderboard.dto.runs.AvgRunTimeByGameDTO;
 import pokemon.runs.time.leaderboard.service.RunService;
 
 import java.util.List;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 
 @RestController
 @RequestMapping("/runs")
@@ -31,37 +33,42 @@ public class RunController {
 
     @PostMapping()
     @Transactional
-    public ResponseEntity createRun(@RequestBody CreateRunDTO data, UriComponentsBuilder uriBuilder) {
-        Run run = runService.createRun(data);
+    public ResponseEntity<DetailsRunDTO> createRun(@RequestBody CreateRunDTO data,
+                                                    @AuthenticationPrincipal User user,
+                                                    UriComponentsBuilder uriBuilder) {
+        Run run = runService.createRun(data, user);
         var uri = uriBuilder.path("/runs/{id}").buildAndExpand(run.getId()).toUri();
         return ResponseEntity.created(uri).body(new DetailsRunDTO(run));
     }
 
     @GetMapping
-    public ResponseEntity<Page<Run>> getAllRuns(@PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<Page<DetailsRunDTO>> getAllRuns(@PageableDefault(size = 10) Pageable pageable) {
         var runs = runService.getAllRuns(pageable);
-        return ResponseEntity.ok(runs);
+        return ResponseEntity.ok(runs.map(DetailsRunDTO::new));
     }
 
     @PatchMapping("/{id}")
     @Transactional
-    public ResponseEntity updateRun(@PathVariable Long id, @RequestBody PatchRunDTO data) {
-        var run = runService.updateRun(id, data);
+    public ResponseEntity<DetailsRunDTO> updateRun(@PathVariable Long id,
+                                                    @RequestBody PatchRunDTO data,
+                                                    @AuthenticationPrincipal User user) {
+        var run = runService.updateRun(id, data, user);
         return ResponseEntity.ok(new DetailsRunDTO(run));
     }
 
     @GetMapping("/game/{game}")
-    public ResponseEntity<Page<Run>> getRunsByGame(
+    public ResponseEntity<Page<DetailsRunDTO>> getRunsByGame(
             @PathVariable String game,
             @PageableDefault(size = 10) Pageable pageable) {
         var runs = runService.findByGame(game, pageable);
-        return ResponseEntity.ok(runs);
+        return ResponseEntity.ok(runs.map(DetailsRunDTO::new));
     }
 
     @DeleteMapping("/{id}")
     @Transactional
-    public ResponseEntity deleteRun(@PathVariable Long id) {
-        runService.deleteRun(id);
+    public ResponseEntity<Void> deleteRun(@PathVariable Long id,
+                                          @AuthenticationPrincipal User user) {
+        runService.deleteRun(id, user);
         return ResponseEntity.noContent().build();
     }
 

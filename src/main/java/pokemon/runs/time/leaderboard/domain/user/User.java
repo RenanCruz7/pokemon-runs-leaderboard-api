@@ -1,5 +1,6 @@
 package pokemon.runs.time.leaderboard.domain.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,12 +28,15 @@ public class User implements UserDetails {
     private Long id;
     @Column(nullable = false, unique = true)
     private String username;
+    @JsonIgnore
     private String password;
     @Column(unique = true)
     private String email;
+    @JsonIgnore
     private String role = "CUSTOMER";
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Run> runs = new ArrayList<>();
 
     @Override

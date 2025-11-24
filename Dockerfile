@@ -1,19 +1,14 @@
 # Stage 1: Build
-FROM eclipse-temurin:21-jdk-alpine AS builder
+FROM maven:3.9.4-eclipse-temurin-21 AS builder
 
 WORKDIR /app
 
-# Copia o arquivo pom.xml e o wrapper do Maven
+# Copia o arquivo pom.xml e o código fonte
 COPY pom.xml .
-COPY mvnw .
-COPY mvnw.cmd .
-COPY .mvn .mvn
-
-# Copia o código fonte
 COPY src src
 
-# Executa o build da aplicação
-RUN ./mvnw clean package -DskipTests
+# Executa o build da aplicação usando o Maven instalado na imagem
+RUN mvn -B clean package -DskipTests
 
 # Stage 2: Runtime
 FROM eclipse-temurin:21-jre-alpine
@@ -31,4 +26,3 @@ ENV SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/leaderboard_db
 
 # Inicia a aplicação
 ENTRYPOINT ["java", "-jar", "app.jar"]
-
