@@ -12,6 +12,7 @@ import pokemon.runs.time.leaderboard.dto.runs.TopPokemonDTO;
 import pokemon.runs.time.leaderboard.dto.runs.RunsCountByGameDTO;
 import pokemon.runs.time.leaderboard.dto.runs.AvgRunTimeByGameDTO;
 import pokemon.runs.time.leaderboard.repository.run.RunRepository;
+import pokemon.runs.time.leaderboard.domain.user.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,8 +23,9 @@ public class RunService {
     @Autowired
     private RunRepository runRepository;
 
-    public Run createRun(CreateRunDTO data) {
+    public Run createRun(CreateRunDTO data, User user) {
         Run run = new Run(data);
+        run.setUser(user);
         return runRepository.save(run);
     }
 
@@ -31,15 +33,20 @@ public class RunService {
         return runRepository.findAll(pageable);
     }
 
-    public Run updateRun(Long id, @Valid PatchRunDTO data) {
+    public Run updateRun(Long id, @Valid PatchRunDTO data, User user) {
         var run = runRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Run not found"));
+
+        // Verifica se o usuário autenticado é o dono da run
+        if (!run.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("You are not authorized to update this run");
+        }
 
         if (data.game() != null) {
             run.setGame(data.game());
         }
         if (data.runTime() != null) {
-            run.setRunTime(Duration.parse(data.runTime()));
+            run.setRunTime(parseDuration(data.runTime()));
         }
         if (data.pokedexStatus() >= run.getPokedexStatus()) {
             run.setPokedexStatus(data.pokedexStatus());
@@ -54,13 +61,27 @@ public class RunService {
         return runRepository.save(run);
     }
 
+    private Duration parseDuration(String hhmm) {
+        if (hhmm == null || !hhmm.matches("\\d{1,2}:\\d{2}")) return Duration.ZERO;
+        String[] parts = hhmm.split(":");
+        int hours = Integer.parseInt(parts[0]);
+        int minutes = Integer.parseInt(parts[1]);
+        return Duration.ofHours(hours).plusMinutes(minutes);
+    }
+
     public Page<Run> findByGame(String game, Pageable pageable) {
         return runRepository.findByGameIgnoreCase(game, pageable);
     }
 
-    public void deleteRun(Long id) {
+    public void deleteRun(Long id, User user) {
         var run = runRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Run not found"));
+
+        // Verifica se o usuário autenticado é o dono da run
+        if (!run.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("You are not authorized to delete this run");
+        }
+
         runRepository.delete(run);
     }
 
