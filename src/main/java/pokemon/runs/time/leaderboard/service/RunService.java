@@ -91,7 +91,7 @@ public class RunService {
     }
 
     public Page<Run> findFastestRuns(String maxTime, Pageable pageable) {
-        Duration maxDuration = Duration.parse(maxTime);
+        Duration maxDuration = parseDuration(maxTime);
         return runRepository.findFastestRuns(maxDuration, pageable);
     }
 
