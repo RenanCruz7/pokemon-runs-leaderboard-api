@@ -45,10 +45,11 @@ public class RunService {
 
     public Run updateRun(Long id, @Valid PatchRunDTO data, User user) {
         var run = runRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Run not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Run com id " + id + " não encontrada"));
 
+        // Verifica se o usuário autenticado é o dono da run
         if (!run.getUser().getId().equals(user.getId())) {
-            throw new UnauthorizedException("You are not authorized to update this run");
+            throw new UnauthorizedException("Você não tem permissão para atualizar esta run");
         }
 
         if (data.game() != null) {
@@ -84,10 +85,11 @@ public class RunService {
 
     public void deleteRun(Long id, User user) {
         var run = runRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Run not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Run com id " + id + " não encontrada"));
 
+        // Verifica se o usuário autenticado é o dono da run
         if (!run.getUser().getId().equals(user.getId())) {
-            throw new UnauthorizedException("You are not authorized to delete this run");
+            throw new UnauthorizedException("Você não tem permissão para deletar esta run");
         }
 
         runRepository.delete(run);
