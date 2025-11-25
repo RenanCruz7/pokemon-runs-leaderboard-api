@@ -35,5 +35,5 @@ public interface RunRepository extends JpaRepository<Run, Long> {
     @Query(value = "SELECT pokemon, COUNT(*) as count FROM (SELECT unnest(string_to_array(pokemon_team, ',')) as pokemon FROM runs) as team GROUP BY pokemon ORDER BY count DESC LIMIT 10", nativeQuery = true)
     List<Object[]> topPokemonsUsed();
 
-
+    Page<Run> findByUserId(Long userId, Pageable pageable);
 }

@@ -135,4 +135,9 @@ public class RunService {
         }
         return sb.toString();
     }
+
+    public Page<Run> getAllMyRuns(User user, Pageable pageable) {
+        var userId = user.getId();
+        return runRepository.findByUserId(userId, pageable);
+    }
 }

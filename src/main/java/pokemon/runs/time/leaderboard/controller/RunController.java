@@ -47,6 +47,13 @@ public class RunController {
         return ResponseEntity.ok(runs.map(DetailsRunDTO::new));
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<Page<DetailsRunDTO>> getAllMyRuns(@AuthenticationPrincipal User user,
+                                                   @PageableDefault(size = 10) Pageable pageable) {
+        var runs = runService.getAllMyRuns(user, pageable);
+        return ResponseEntity.ok(runs.map(DetailsRunDTO::new));
+    }
+
     @PatchMapping("/{id}")
     @Transactional
     public ResponseEntity<DetailsRunDTO> updateRun(@PathVariable Long id,
