@@ -10,6 +10,7 @@ import pokemon.runs.time.leaderboard.dto.auth.LoginResponseDTO;
 import pokemon.runs.time.leaderboard.dto.auth.RegisterResponseDTO;
 import pokemon.runs.time.leaderboard.dto.users.CreateUserDTO;
 import pokemon.runs.time.leaderboard.dto.users.LoginUserDTO;
+import pokemon.runs.time.leaderboard.infra.errors.DuplicateResourceException;
 import pokemon.runs.time.leaderboard.infra.security.TokenService;
 import pokemon.runs.time.leaderboard.repository.user.UserRepository;
 
@@ -29,16 +30,22 @@ public class AuthService {
     private TokenService tokenService;
 
     public RegisterResponseDTO register(CreateUserDTO data) {
-        // Verificar se o usuário já existe
+        if (data.username().length() < 3) {
+            throw new IllegalArgumentException("Username deve ter no mínimo 3 caracteres");
+        }
+
+        if (data.password().length() < 6) {
+            throw new IllegalArgumentException("Senha deve ter no mínimo 6 caracteres");
+        }
+
         if(userRepository.findByUsername(data.username()).isPresent()) {
-            throw new RuntimeException("User already exists");
+            throw new DuplicateResourceException("Nome de usuário já está em uso");
         }
 
         if(userRepository.findByEmail(data.email()).isPresent()) {
-            throw new RuntimeException("Email already exists");
+            throw new DuplicateResourceException("Email já está em uso");
         }
 
-        // Criar novo usuário
         User newUser = new User();
         newUser.setUsername(data.username());
         newUser.setPassword(passwordEncoder.encode(data.password()));

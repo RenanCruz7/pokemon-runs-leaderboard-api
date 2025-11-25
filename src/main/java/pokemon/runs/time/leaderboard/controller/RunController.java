@@ -1,6 +1,7 @@
 package pokemon.runs.time.leaderboard.controller;
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -57,7 +58,7 @@ public class RunController {
     @PatchMapping("/{id}")
     @Transactional
     public ResponseEntity<DetailsRunDTO> updateRun(@PathVariable Long id,
-                                                    @RequestBody PatchRunDTO data,
+                                                    @RequestBody @Valid PatchRunDTO data,
                                                     @AuthenticationPrincipal User user) {
         var run = runService.updateRun(id, data, user);
         return ResponseEntity.ok(new DetailsRunDTO(run));
@@ -105,6 +106,10 @@ public class RunController {
     public ResponseEntity<Page<DetailsRunDTO>> getByPokemonInTeam(
             @RequestParam String pokemon,
             @PageableDefault(size = 10) Pageable pageable) {
+        // Validar pokemon name
+        if (pokemon == null || pokemon.trim().isEmpty()) {
+            throw new IllegalArgumentException("Nome do pokemon não pode estar vazio");
+        }
         var runs = runService.findByPokemonInTeam(pokemon, pageable);
         return ResponseEntity.ok(runs.map(DetailsRunDTO::new));
     }

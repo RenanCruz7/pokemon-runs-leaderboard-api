@@ -1,5 +1,6 @@
 package pokemon.runs.time.leaderboard.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -11,6 +12,7 @@ import pokemon.runs.time.leaderboard.dto.runs.PatchRunDTO;
 import pokemon.runs.time.leaderboard.dto.runs.TopPokemonDTO;
 import pokemon.runs.time.leaderboard.dto.runs.RunsCountByGameDTO;
 import pokemon.runs.time.leaderboard.dto.runs.AvgRunTimeByGameDTO;
+import pokemon.runs.time.leaderboard.infra.errors.UnauthorizedException;
 import pokemon.runs.time.leaderboard.repository.run.RunRepository;
 import pokemon.runs.time.leaderboard.domain.user.User;
 
@@ -24,6 +26,14 @@ public class RunService {
     private RunRepository runRepository;
 
     public Run createRun(CreateRunDTO data, User user) {
+        if (data.runTime() == null || !data.runTime().matches("\\d{1,2}:\\d{2}")) {
+            throw new IllegalArgumentException("Run time deve estar no formato hh:mm");
+        }
+
+        if (data.pokedexStatus() < 0) {
+            throw new IllegalArgumentException("Pokedex status não pode ser negativo");
+        }
+
         Run run = new Run(data);
         run.setUser(user);
         return runRepository.save(run);
@@ -37,9 +47,8 @@ public class RunService {
         var run = runRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Run not found"));
 
-        // Verifica se o usuário autenticado é o dono da run
         if (!run.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You are not authorized to update this run");
+            throw new UnauthorizedException("You are not authorized to update this run");
         }
 
         if (data.game() != null) {
@@ -77,9 +86,8 @@ public class RunService {
         var run = runRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Run not found"));
 
-        // Verifica se o usuário autenticado é o dono da run
         if (!run.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You are not authorized to delete this run");
+            throw new UnauthorizedException("You are not authorized to delete this run");
         }
 
         runRepository.delete(run);
@@ -87,7 +95,7 @@ public class RunService {
 
     public Run findById(Long id) {
         return runRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Run not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Run com id " + id + " não encontrada"));
     }
 
     public Page<Run> findFastestRuns(String maxTime, Pageable pageable) {
