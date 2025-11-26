@@ -35,7 +35,7 @@ public class RunController {
 
     @PostMapping()
     @Transactional
-    public ResponseEntity<DetailsRunDTO> createRun(@RequestBody CreateRunDTO data,
+    public ResponseEntity<DetailsRunDTO> createRun(@RequestBody @Valid CreateRunDTO data,
                                                     @AuthenticationPrincipal User user,
                                                     UriComponentsBuilder uriBuilder) {
         if (user == null) {

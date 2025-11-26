@@ -1,6 +1,8 @@
 package pokemon.runs.time.leaderboard.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
+@Transactional
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @DisplayName("RunController - Testes de Integração")
 class RunControllerIntegrationTest {
@@ -52,6 +55,9 @@ class RunControllerIntegrationTest {
     @Autowired
     private TokenService tokenService;
 
+    @Autowired
+    private EntityManager entityManager;
+
     private User testUser;
     private User otherUser;
     private String testUserToken;
@@ -66,6 +72,10 @@ class RunControllerIntegrationTest {
         // Limpar banco
         runRepository.deleteAll();
         userRepository.deleteAll();
+
+        // Flush e clear para garantir que as mudanças sejam persistidas
+        entityManager.flush();
+        entityManager.clear();
 
         // Criar usuário de teste
         testUser = new User();
