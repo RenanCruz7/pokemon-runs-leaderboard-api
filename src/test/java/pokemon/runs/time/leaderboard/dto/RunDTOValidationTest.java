@@ -94,7 +94,7 @@ class RunDTOValidationTest {
         CreateRunDTO dto = new CreateRunDTO(
                 "Pokemon Red",
                 "2:30",
-                0,
+                1,  // Mínimo válido é 1
                 null,
                 null
         );
@@ -206,13 +206,34 @@ class RunDTOValidationTest {
     }
 
     @Test
-    @DisplayName("CreateRunDTO - Deve aceitar pokedexStatus zero")
+    @DisplayName("CreateRunDTO - Deve rejeitar pokedexStatus zero")
     void testCreateRunDTO_ZeroPokedexStatus() {
         // Arrange
         CreateRunDTO dto = new CreateRunDTO(
                 "Pokemon Red",
                 "2:30",
-                0,
+                0,  // Inválido - deve ser >= 1
+                Arrays.asList("Pikachu"),
+                "Starting"
+        );
+
+        // Act
+        Set<ConstraintViolation<CreateRunDTO>> violations = validator.validate(dto);
+
+        // Assert
+        assertFalse(violations.isEmpty());
+        assertTrue(violations.stream()
+                .anyMatch(v -> v.getPropertyPath().toString().equals("pokedexStatus")));
+    }
+
+    @Test
+    @DisplayName("CreateRunDTO - Deve aceitar pokedexStatus com valor 1 (mínimo)")
+    void testCreateRunDTO_MinimumPokedexStatus() {
+        // Arrange
+        CreateRunDTO dto = new CreateRunDTO(
+                "Pokemon Red",
+                "2:30",
+                1,  // Valor mínimo válido
                 Arrays.asList("Pikachu"),
                 "Starting"
         );
