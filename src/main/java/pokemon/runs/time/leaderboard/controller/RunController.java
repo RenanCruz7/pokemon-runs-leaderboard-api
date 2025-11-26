@@ -21,6 +21,7 @@ import pokemon.runs.time.leaderboard.dto.runs.PatchRunDTO;
 import pokemon.runs.time.leaderboard.dto.runs.TopPokemonDTO;
 import pokemon.runs.time.leaderboard.dto.runs.RunsCountByGameDTO;
 import pokemon.runs.time.leaderboard.dto.runs.AvgRunTimeByGameDTO;
+import pokemon.runs.time.leaderboard.infra.errors.UnauthorizedException;
 import pokemon.runs.time.leaderboard.service.RunService;
 
 import java.util.List;
@@ -37,6 +38,9 @@ public class RunController {
     public ResponseEntity<DetailsRunDTO> createRun(@RequestBody CreateRunDTO data,
                                                     @AuthenticationPrincipal User user,
                                                     UriComponentsBuilder uriBuilder) {
+        if (user == null) {
+            throw new UnauthorizedException("Usuário não autenticado");
+        }
         Run run = runService.createRun(data, user);
         var uri = uriBuilder.path("/runs/{id}").buildAndExpand(run.getId()).toUri();
         return ResponseEntity.created(uri).body(new DetailsRunDTO(run));
@@ -90,6 +94,10 @@ public class RunController {
     public ResponseEntity<Page<DetailsRunDTO>> getFastestRuns(
             @RequestParam String maxTime,
             @PageableDefault(size = 10, sort = "runTime") Pageable pageable) {
+        // Validar formato de tempo
+        if (maxTime == null || !maxTime.matches("\\d{1,2}:\\d{2}")) {
+            throw new IllegalArgumentException("Formato de tempo inválido. Use hh:mm");
+        }
         var runs = runService.findFastestRuns(maxTime, pageable);
         return ResponseEntity.ok(runs.map(DetailsRunDTO::new));
     }
@@ -98,6 +106,10 @@ public class RunController {
     public ResponseEntity<Page<DetailsRunDTO>> getByPokedexStatus(
             @RequestParam int minStatus,
             @PageableDefault(size = 10, sort = "pokedexStatus", direction = Sort.Direction.DESC) Pageable pageable) {
+        // Validar minStatus
+        if (minStatus < 1) {
+            throw new IllegalArgumentException("Pokedex status deve ser no mínimo 1");
+        }
         var runs = runService.findByMinPokedexStatus(minStatus, pageable);
         return ResponseEntity.ok(runs.map(DetailsRunDTO::new));
     }

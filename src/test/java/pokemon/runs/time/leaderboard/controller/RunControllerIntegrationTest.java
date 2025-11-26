@@ -145,11 +145,13 @@ class RunControllerIntegrationTest {
     @Test
     @DisplayName("POST /runs - Deve retornar 400 com dados inválidos")
     void testCreateRun_InvalidData() throws Exception {
+        authenticateUser(testUser);
+
         CreateRunDTO createRunDTO = new CreateRunDTO(
                 "",  // game vazio
                 "invalid",  // formato inválido
-                200,  // pokedexStatus inválido
-                Arrays.asList("Pikachu"),
+                0,  // pokedexStatus inválido (deve ser >= 1)
+                Arrays.asList("Pikachu", "Raichu"),
                 "Test"
         );
 
@@ -158,6 +160,8 @@ class RunControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRunDTO)))
                 .andExpect(status().isBadRequest());
+
+        clearAuthentication();
     }
 
     @Test
@@ -167,7 +171,7 @@ class RunControllerIntegrationTest {
                 "Pokemon Blue",
                 "3:45",
                 100,
-                Arrays.asList("Bulbasaur"),
+                Arrays.asList("Bulbasaur", "Squirtle"),
                 "Test"
         );
 
@@ -199,7 +203,7 @@ class RunControllerIntegrationTest {
         otherRun.setGame("Pokemon Gold");
         otherRun.setRunTime(Duration.ofHours(4));
         otherRun.setPokedexStatus(100);
-        otherRun.setPokemonTeam(Arrays.asList("Cyndaquil"));
+        otherRun.setPokemonTeam(Arrays.asList("Cyndaquil", "Typhlosion"));
         otherRun.setObservation("Test");
         otherRun.setUser(otherUser);
         runRepository.save(otherRun);
@@ -241,7 +245,7 @@ class RunControllerIntegrationTest {
         PatchRunDTO patchRunDTO = new PatchRunDTO(
                 "Pokemon Yellow",
                 "2:15",
-                120,
+                151,  // Atualizar com um valor maior ou igual ao anterior (151)
                 Arrays.asList("Pikachu", "Raichu"),
                 "Updated run"
         );
@@ -253,7 +257,7 @@ class RunControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.game").value("Pokemon Yellow"))
                 .andExpect(jsonPath("$.runTime").value("02:15"))
-                .andExpect(jsonPath("$.pokedexStatus").value(120));
+                .andExpect(jsonPath("$.pokedexStatus").value(151));
 
         clearAuthentication();
     }
@@ -267,7 +271,7 @@ class RunControllerIntegrationTest {
                 "Pokemon Yellow",
                 "2:15",
                 120,
-                Arrays.asList("Pikachu"),
+                Arrays.asList("Pikachu", "Raichu"),
                 "Test"
         );
 
@@ -360,7 +364,7 @@ class RunControllerIntegrationTest {
     void testGetByPokedexStatus_InvalidMinStatus() throws Exception {
         mockMvc.perform(get("/runs/pokedex")
                         .header("Authorization", "Bearer " + testUserToken)
-                        .param("minStatus", "200"))
+                        .param("minStatus", "0"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.erro").value("Argumento inválido"));
     }
