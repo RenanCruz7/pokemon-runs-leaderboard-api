@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import pokemon.runs.time.leaderboard.config.TestSecurityConfig;
 import pokemon.runs.time.leaderboard.dto.users.CreateUserDTO;
 import pokemon.runs.time.leaderboard.dto.users.LoginUserDTO;
 import pokemon.runs.time.leaderboard.repository.user.UserRepository;
