@@ -1,28 +1,20 @@
-# Stage 1: Build
-FROM maven:3.9.4-eclipse-temurin-21 AS builder
-
+# ---- Build Stage ----
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# Copia o arquivo pom.xml e o código fonte
 COPY pom.xml .
-COPY src src
+COPY src ./src
 
-# Executa o build da aplicação usando o Maven instalado na imagem
-RUN mvn -B clean package -DskipTests
+RUN mvn -q -e -DskipTests package
 
-# Stage 2: Runtime
-FROM eclipse-temurin:21-jre-alpine
 
+# ---- Runtime Stage ----
+FROM eclipse-temurin:21-jdk
 WORKDIR /app
 
-# Copia o JAR gerado da stage anterior
-COPY --from=builder /app/target/*.jar app.jar
+COPY --from=build /app/target/*.jar app.jar
 
-# Exponhe a porta da aplicação
+# Render usa a variável de ambiente $PORT
 EXPOSE 8080
 
-# Define a variável de ambiente para conectar ao banco postgres
-ENV SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/leaderboard_db
-
-# Inicia a aplicação
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT:-8080} -jar app.jar"]

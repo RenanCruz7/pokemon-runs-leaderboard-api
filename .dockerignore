@@ -23,7 +23,7 @@ mvnw.cmd
 Thumbs.db
 
 # Docker
-Dockerfile
+Dockerfile-dev
 compose.yaml
 docker-compose.yaml
 .dockerignore

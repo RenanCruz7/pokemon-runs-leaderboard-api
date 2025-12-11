@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: leaderboard-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    region: oregon
+    plan: free
+    branch: main
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: API_SECURITY_TOKEN_SECRET
+        generateValue: true
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://localhost:3000,https://*.vercel.app
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: validate
+    healthCheckPath: /actuator/health
+

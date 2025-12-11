@@ -21,7 +21,7 @@ services:
   leaderboard-app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile-dev
     container_name: leaderboard-app
     ports:
       - '8080:8080'
@@ -31,6 +31,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=${SPRING_JPA_HIBERNATE_DDL_AUTO}
       - API_SECURITY_TOKEN_SECRET=${API_SECURITY_TOKEN_SECRET}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
     depends_on:
       postgres:
         condition: service_healthy
