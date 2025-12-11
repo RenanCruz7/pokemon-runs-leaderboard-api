@@ -2,7 +2,17 @@
 
 API REST para gerenciar um leaderboard de speedruns de jogos Pokémon com autenticação JWT.
 
-## 🚀 Como Rodar o Projeto com Docker Compose
+## ✨ Características
+
+- 🔐 Autenticação JWT
+- 🏃 CRUD completo de runs
+- 📊 Estatísticas e filtros avançados
+- 🌐 **CORS habilitado para desenvolvimento frontend**
+- 🐘 PostgreSQL como banco de dados
+- 🔄 Migrations com Flyway
+- 🐳 Deploy com Docker
+
+---
 
 ### 📋 Pré-requisitos
 - Docker instalado
@@ -258,12 +268,38 @@ pokemon-runs-leaderboard-api/
 
 ---
 
+## 📚 Documentação Completa
+
+### Para Desenvolvedores Frontend
+
+- **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** - Documentação completa de todos os endpoints e DTOs
+- **[REACT_INTEGRATION_GUIDE.md](REACT_INTEGRATION_GUIDE.md)** - Guia completo de integração com React
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Referência rápida de endpoints
+- **[CORS_CONFIGURATION.md](CORS_CONFIGURATION.md)** - Detalhes sobre configuração CORS
+- **[CORS_SETUP_SUMMARY.md](CORS_SETUP_SUMMARY.md)** - Resumo das configurações CORS implementadas
+
+### 🌐 CORS Habilitado
+
+A API está configurada para aceitar requisições de **qualquer origem** durante o desenvolvimento:
+
+```javascript
+// Funciona direto do React sem problemas!
+fetch('http://localhost:8080/runs')
+  .then(res => res.json())
+  .then(data => console.log(data));
+```
+
+⚠️ **Antes de produção:** Altere `CorsConfig.java` para aceitar apenas seu domínio!
+
+---
+
 ## 📝 Notas Importantes
 
 1. **Segurança**: Mude o `API_SECURITY_TOKEN_SECRET` em produção!
-2. **Autorização**: Usuários só podem editar/deletar suas próprias runs
-3. **Formato de tempo**: Use "HH:MM" para runTime (ex: "2:30" = 2h30min)
-4. **Flyway**: Migrations rodam automaticamente no startup
+2. **CORS**: Em produção, configure apenas origens específicas no `CorsConfig.java`
+3. **Autorização**: Usuários só podem editar/deletar suas próprias runs
+4. **Formato de tempo**: Use "HH:MM" para runTime (ex: "2:30" = 2h30min)
+5. **Flyway**: Migrations rodam automaticamente no startup
 
 ---
 
