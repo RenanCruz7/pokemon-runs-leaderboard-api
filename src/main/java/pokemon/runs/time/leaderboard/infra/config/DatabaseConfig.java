@@ -6,8 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 @Configuration
 public class DatabaseConfig {
@@ -15,52 +13,38 @@ public class DatabaseConfig {
     @Bean
     @Primary
     public DataSource dataSource() {
-        String databaseUrl = System.getenv("DATABASE_URL");
-        String username = System.getenv("SPRING_DATASOURCE_USERNAME");
-        String password = System.getenv("SPRING_DATASOURCE_PASSWORD");
+        // Render (e outros provedores PaaS) fornecem as credenciais separadamente.
+        // Esta é a forma mais robusta de configurar a conexão.
+        String dbHost = System.getenv("DB_HOST");
+        String dbPort = System.getenv("DB_PORT");
+        String dbName = System.getenv("DB_NAME");
+        String username = System.getenv("DB_USER");
+        String password = System.getenv("DB_PASS");
 
-        // Se DATABASE_URL existe (Render), precisa fazer parse correto
-        if (databaseUrl != null && databaseUrl.startsWith("postgres://")) {
-            try {
-                URI dbUri = new URI(databaseUrl);
+        String jdbcUrl;
 
-                // Extrair username e password da URI
-                String userInfo = dbUri.getUserInfo();
-                if (userInfo != null) {
-                    String[] credentials = userInfo.split(":", 2);
-                    username = credentials[0];
-                    if (credentials.length > 1) {
-                        password = credentials[1];
-                    }
-                }
-
-                // Reconstruir a URL no formato JDBC
-                String host = dbUri.getHost();
-                int port = dbUri.getPort();
-                String path = dbUri.getPath();
-
-                databaseUrl = String.format("jdbc:postgresql://%s:%d%s", host, port, path);
-
-            } catch (URISyntaxException e) {
-                throw new RuntimeException("Failed to parse DATABASE_URL", e);
+        // Se as variáveis específicas do Render estiverem presentes, use-as.
+        if (dbHost != null && dbPort != null && dbName != null && username != null) {
+            jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", dbHost, dbPort, dbName);
+        } else {
+            // Fallback para desenvolvimento local se as variáveis do Render não estiverem definidas.
+            jdbcUrl = System.getenv("SPRING_DATASOURCE_URL");
+            if (jdbcUrl == null) {
+                jdbcUrl = "jdbc:postgresql://localhost:5432/leaderboard_db";
+            }
+            if (username == null) {
+                username = System.getenv("SPRING_DATASOURCE_USERNAME");
+                if (username == null) username = "postgres";
+            }
+            if (password == null) {
+                password = System.getenv("SPRING_DATASOURCE_PASSWORD");
+                if (password == null) password = "";
             }
         }
-        // Se DATABASE_URL não existe, usa SPRING_DATASOURCE_URL
-        else if (databaseUrl == null) {
-            databaseUrl = System.getenv("SPRING_DATASOURCE_URL");
-        }
-
-        // Fallback para desenvolvimento local
-        if (databaseUrl == null) {
-            databaseUrl = "jdbc:postgresql://localhost:5432/leaderboard_db";
-        }
-
-        if (username == null) username = "postgres";
-        if (password == null) password = "";
 
         return DataSourceBuilder
                 .create()
-                .url(databaseUrl)
+                .url(jdbcUrl)
                 .username(username)
                 .password(password)
                 .driverClassName("org.postgresql.Driver")
