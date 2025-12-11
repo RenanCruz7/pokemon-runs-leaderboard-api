@@ -1,0 +1,44 @@
+services:
+  # Aplicação Spring Boot
+  - type: web
+    name: leaderboard-api
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: leaderboard-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: leaderboard-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: leaderboard-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: leaderboard-db
+          property: user
+      - key: DB_PASS
+        fromDatabase:
+          name: leaderboard-db
+          property: password
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      - key: API_SECURITY_TOKEN_SECRET
+        generateValue: true
+      - key: PORT
+        value: 8080
+
+databases:
+  - name: leaderboard-db
+    databaseName: leaderboard_db
+    plan: free
+    region: oregon
+

@@ -1,10 +1,13 @@
 # Git
 .git
 .gitignore
+.github/
 
 # Maven
 target/
 .mvn/
+mvnw
+mvnw.cmd
 
 # IDE
 .idea/
@@ -12,6 +15,8 @@ target/
 *.swp
 *.swo
 *.iml
+*.ipr
+*.iws
 
 # OS
 .DS_Store
@@ -19,6 +24,23 @@ Thumbs.db
 
 # Docker
 Dockerfile
+compose.yaml
 docker-compose.yaml
 .dockerignore
+
+# Documentation
+*.md
+!README.md
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Test files
+src/test/
+surefire-reports/
+
+# Postman
+Postman_Collection.json
 
