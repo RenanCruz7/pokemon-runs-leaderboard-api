@@ -126,6 +126,25 @@ class RunDTOValidationTest {
     }
 
     @Test
+    @DisplayName("PatchRunDTO - Deve permitir campos ausentes")
+    void testPatchRunDTO_NullFields() {
+        // Arrange
+        PatchRunDTO dto = new PatchRunDTO(
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        // Act
+        Set<ConstraintViolation<PatchRunDTO>> violations = validator.validate(dto);
+
+        // Assert
+        assertTrue(violations.isEmpty());
+    }
+
+    @Test
     @DisplayName("PatchRunDTO - Deve falhar quando game está em branco")
     void testPatchRunDTO_BlankGame() {
         // Arrange
@@ -144,6 +163,48 @@ class RunDTOValidationTest {
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
                 .anyMatch(v -> v.getPropertyPath().toString().equals("game")));
+    }
+
+    @Test
+    @DisplayName("CreateRunDTO - Deve falhar quando minutos são maiores que 59")
+    void testCreateRunDTO_InvalidMinutes() {
+        // Arrange
+        CreateRunDTO dto = new CreateRunDTO(
+                "Pokemon Red",
+                "2:99",
+                151,
+                Arrays.asList("Pikachu"),
+                "Test"
+        );
+
+        // Act
+        Set<ConstraintViolation<CreateRunDTO>> violations = validator.validate(dto);
+
+        // Assert
+        assertFalse(violations.isEmpty());
+        assertTrue(violations.stream()
+                .anyMatch(v -> v.getPropertyPath().toString().equals("runTime")));
+    }
+
+    @Test
+    @DisplayName("PatchRunDTO - Deve falhar quando minutos são maiores que 59")
+    void testPatchRunDTO_InvalidMinutes() {
+        // Arrange
+        PatchRunDTO dto = new PatchRunDTO(
+                null,
+                "2:99",
+                null,
+                null,
+                null
+        );
+
+        // Act
+        Set<ConstraintViolation<PatchRunDTO>> violations = validator.validate(dto);
+
+        // Assert
+        assertFalse(violations.isEmpty());
+        assertTrue(violations.stream()
+                .anyMatch(v -> v.getPropertyPath().toString().equals("runTime")));
     }
 
     @Test

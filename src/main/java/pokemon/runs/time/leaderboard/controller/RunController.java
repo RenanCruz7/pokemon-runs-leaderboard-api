@@ -95,7 +95,7 @@ public class RunController {
             @RequestParam String maxTime,
             @PageableDefault(size = 10, sort = "runTime") Pageable pageable) {
         // Validar formato de tempo
-        if (maxTime == null || !maxTime.matches("\\d{1,2}:\\d{2}")) {
+        if (maxTime == null || !maxTime.matches("\\d{1,2}:[0-5]\\d")) {
             throw new IllegalArgumentException("Formato de tempo inválido. Use hh:mm");
         }
         var runs = runService.findFastestRuns(maxTime, pageable);

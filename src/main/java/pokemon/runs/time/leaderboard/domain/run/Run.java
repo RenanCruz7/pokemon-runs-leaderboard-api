@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pokemon.runs.time.leaderboard.domain.user.User;
-import pokemon.runs.time.leaderboard.dto.runs.CreateRunDTO;
 import pokemon.runs.time.leaderboard.utils.DurationConverter;
 import pokemon.runs.time.leaderboard.utils.StringListConverter;
 import java.time.Duration;
@@ -32,20 +31,4 @@ public class Run {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-
-    public Run(CreateRunDTO data) {
-        this.game = data.game();
-        this.runTime = parseDuration(data.runTime());
-        this.pokedexStatus = data.pokedexStatus();
-        this.pokemonTeam = data.pokemonTeam();
-        this.observation = data.observation();
-    }
-
-    private Duration parseDuration(String hhmm) {
-        if (hhmm == null || !hhmm.matches("\\d{1,2}:\\d{2}")) return Duration.ZERO;
-        String[] parts = hhmm.split(":");
-        int hours = Integer.parseInt(parts[0]);
-        int minutes = Integer.parseInt(parts[1]);
-        return Duration.ofHours(hours).plusMinutes(minutes);
-    }
 }

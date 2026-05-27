@@ -15,6 +15,7 @@ import pokemon.runs.time.leaderboard.dto.runs.AvgRunTimeByGameDTO;
 import pokemon.runs.time.leaderboard.infra.errors.UnauthorizedException;
 import pokemon.runs.time.leaderboard.repository.run.RunRepository;
 import pokemon.runs.time.leaderboard.domain.user.User;
+import pokemon.runs.time.leaderboard.utils.RunTimeParser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,15 +27,18 @@ public class RunService {
     private RunRepository runRepository;
 
     public Run createRun(CreateRunDTO data, User user) {
-        if (data.runTime() == null || !data.runTime().matches("\\d{1,2}:\\d{2}")) {
-            throw new IllegalArgumentException("Run time deve estar no formato hh:mm");
+        Duration runTime = RunTimeParser.parse(data.runTime());
+
+        if (data.pokedexStatus() < 1) {
+            throw new IllegalArgumentException("Pokedex status deve ser no mínimo 1");
         }
 
-        if (data.pokedexStatus() < 0) {
-            throw new IllegalArgumentException("Pokedex status não pode ser negativo");
-        }
-
-        Run run = new Run(data);
+        Run run = new Run();
+        run.setGame(data.game());
+        run.setRunTime(runTime);
+        run.setPokedexStatus(data.pokedexStatus());
+        run.setPokemonTeam(data.pokemonTeam());
+        run.setObservation(data.observation());
         run.setUser(user);
         return runRepository.save(run);
     }
@@ -56,9 +60,9 @@ public class RunService {
             run.setGame(data.game());
         }
         if (data.runTime() != null) {
-            run.setRunTime(parseDuration(data.runTime()));
+            run.setRunTime(RunTimeParser.parse(data.runTime()));
         }
-        if (data.pokedexStatus() >= run.getPokedexStatus()) {
+        if (data.pokedexStatus() != null) {
             run.setPokedexStatus(data.pokedexStatus());
         }
         if (data.pokemonTeam() != null) {
@@ -69,14 +73,6 @@ public class RunService {
         }
 
         return runRepository.save(run);
-    }
-
-    private Duration parseDuration(String hhmm) {
-        if (hhmm == null || !hhmm.matches("\\d{1,2}:\\d{2}")) return Duration.ZERO;
-        String[] parts = hhmm.split(":");
-        int hours = Integer.parseInt(parts[0]);
-        int minutes = Integer.parseInt(parts[1]);
-        return Duration.ofHours(hours).plusMinutes(minutes);
     }
 
     public Page<Run> findByGame(String game, Pageable pageable) {
@@ -101,7 +97,7 @@ public class RunService {
     }
 
     public Page<Run> findFastestRuns(String maxTime, Pageable pageable) {
-        Duration maxDuration = parseDuration(maxTime);
+        Duration maxDuration = RunTimeParser.parse(maxTime);
         return runRepository.findFastestRuns(maxDuration, pageable);
     }
 
@@ -135,15 +131,26 @@ public class RunService {
         StringBuilder sb = new StringBuilder();
         sb.append("id,game,runTime,pokedexStatus,pokemonTeam,observation\n");
         for (Run run : runs) {
-            sb.append(run.getId()).append(",")
-              .append(run.getGame()).append(",")
-              .append(run.getRunTime() != null ? run.getRunTime().toString() : "").append(",")
-              .append(run.getPokedexStatus()).append(",")
-              .append(run.getPokemonTeam() != null ? String.join("|", run.getPokemonTeam()) : "").append(",")
-              .append(run.getObservation() != null ? run.getObservation().replaceAll(",", " ") : "")
+            sb.append(csvValue(run.getId())).append(",")
+              .append(csvValue(run.getGame())).append(",")
+              .append(csvValue(RunTimeParser.format(run.getRunTime()))).append(",")
+              .append(csvValue(run.getPokedexStatus())).append(",")
+              .append(csvValue(run.getPokemonTeam() != null ? String.join("|", run.getPokemonTeam()) : "")).append(",")
+              .append(csvValue(run.getObservation()))
               .append("\n");
         }
         return sb.toString();
+    }
+
+    private String csvValue(Object value) {
+        if (value == null) return "";
+
+        String text = value.toString();
+        if (text.contains(",") || text.contains("\"") || text.contains("\n") || text.contains("\r")) {
+            return "\"" + text.replace("\"", "\"\"") + "\"";
+        }
+
+        return text;
     }
 
     public Page<Run> getAllMyRuns(User user, Pageable pageable) {

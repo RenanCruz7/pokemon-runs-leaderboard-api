@@ -169,6 +169,50 @@ class RunServiceTest {
     }
 
     @Test
+    @DisplayName("Deve atualizar apenas campos enviados no PATCH")
+    void testUpdateRun_PartialPatch() {
+        // Arrange
+        PatchRunDTO partialDTO = new PatchRunDTO(
+                null,
+                null,
+                100,
+                null,
+                null
+        );
+        when(runRepository.findById(1L)).thenReturn(Optional.of(testRun));
+        when(runRepository.save(any(Run.class))).thenReturn(testRun);
+
+        // Act
+        Run result = runService.updateRun(1L, partialDTO, testUser);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("Pokemon Red", testRun.getGame());
+        assertEquals(Duration.ofHours(2).plusMinutes(30), testRun.getRunTime());
+        assertEquals(100, testRun.getPokedexStatus());
+        verify(runRepository, times(1)).save(testRun);
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao criar run com minutos inválidos")
+    void testCreateRun_InvalidMinutes() {
+        // Arrange
+        CreateRunDTO invalidDTO = new CreateRunDTO(
+                "Pokemon Red",
+                "2:99",
+                100,
+                Arrays.asList("Pikachu"),
+                "Test"
+        );
+
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class, () -> {
+            runService.createRun(invalidDTO, testUser);
+        });
+        verify(runRepository, never()).save(any(Run.class));
+    }
+
+    @Test
     @DisplayName("Deve lançar EntityNotFoundException ao atualizar run inexistente")
     void testUpdateRun_NotFound() {
         // Arrange
@@ -377,6 +421,23 @@ class RunServiceTest {
         assertTrue(csv.contains("id,game,runTime,pokedexStatus,pokemonTeam,observation"));
         assertTrue(csv.contains("Pokemon Red"));
         verify(runRepository, times(1)).findAll();
+    }
+
+    @Test
+    @DisplayName("Deve escapar campos CSV com vírgulas e aspas")
+    void testExportRunsToCsv_EscapesSpecialCharacters() {
+        // Arrange
+        testRun.setGame("Pokemon Red, Blue");
+        testRun.setObservation("Run \"especial\", com vírgula");
+        when(runRepository.findAll()).thenReturn(List.of(testRun));
+
+        // Act
+        String csv = runService.exportRunsToCsv();
+
+        // Assert
+        assertTrue(csv.contains("\"Pokemon Red, Blue\""));
+        assertTrue(csv.contains("\"Run \"\"especial\"\", com vírgula\""));
+        assertTrue(csv.contains("02:30"));
     }
 }
 
