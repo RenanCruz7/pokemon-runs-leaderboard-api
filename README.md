@@ -26,10 +26,15 @@ cd /home/renan/Documentos/pokemon-runs-leaderboard-api
 ```
 
 #### 2. Verifique o arquivo .env
-O arquivo `.env` já foi criado com as configurações padrão. Se quiser alterar alguma configuração, edite o arquivo:
+Use `.env.example` como referência para as variáveis esperadas. Para execução local, configure `SPRING_PROFILES_ACTIVE=local`:
 ```bash
 nano .env
 ```
+
+Profiles disponíveis:
+- `local` - usa defaults locais para PostgreSQL, CORS e JWT.
+- `prod` - exige banco, CORS e `API_SECURITY_TOKEN_SECRET` via ambiente.
+- `test` - usado pela suíte automatizada com H2 em memória.
 
 #### 3. Inicie o projeto com Docker Compose
 
@@ -44,6 +49,7 @@ Este comando irá:
 - ✅ Criar o container da aplicação
 - ✅ Executar as migrations do Flyway automaticamente
 - ✅ Iniciar a API na porta 8080
+- ✅ Aguardar o PostgreSQL ficar saudável antes de iniciar a API
 
 **Para rodar em background (detached mode):**
 ```bash
@@ -69,7 +75,7 @@ A API estará disponível em: `http://localhost:8080`
 **Teste rápido:**
 ```bash
 # Health check
-curl http://localhost:8080/auth/login
+curl http://localhost:8080/actuator/health
 ```
 
 ### 🧪 Testando a Autenticação e Criação de Runs
@@ -154,6 +160,9 @@ docker compose up
 #### 🔓 Públicos (sem autenticação)
 - `POST /auth/register` - Registrar novo usuário
 - `POST /auth/login` - Fazer login e obter token JWT
+- `POST /auth/forgot-password` - Solicitar redefinição de senha
+- `POST /auth/reset-password` - Redefinir senha
+- `GET /actuator/health` - Health check da aplicação
 
 #### 🔒 Protegidos (requer token JWT no header `Authorization: Bearer {token}`)
 
@@ -222,6 +231,12 @@ docker compose logs postgres
 docker compose ps
 ```
 
+Se o volume local foi criado antes da correção do caminho do PostgreSQL, recrie os volumes:
+```bash
+docker compose down -v
+docker compose up --build
+```
+
 **Problema: Migrations falhando**
 ```bash
 # Apagar volume e recriar
@@ -232,6 +247,10 @@ docker compose up --build
 **Problema: Token JWT inválido**
 - Verifique se a variável `API_SECURITY_TOKEN_SECRET` está no `.env`
 - Recrie o token fazendo login novamente
+
+**Problema: app falha ao iniciar por variável ausente**
+- Em desenvolvimento, defina `SPRING_PROFILES_ACTIVE=local`
+- Em produção, configure explicitamente `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`, `API_SECURITY_TOKEN_SECRET` e `CORS_ALLOWED_ORIGINS`
 
 ### 📦 Estrutura do Projeto
 
@@ -280,23 +299,22 @@ pokemon-runs-leaderboard-api/
 
 ### 🌐 CORS Habilitado
 
-A API está configurada para aceitar requisições de **qualquer origem** durante o desenvolvimento:
+A API aceita apenas as origens configuradas em `CORS_ALLOWED_ORIGINS`. Sem essa variável, o fallback permite `http://localhost:*` para desenvolvimento local:
 
 ```javascript
-// Funciona direto do React sem problemas!
 fetch('http://localhost:8080/runs')
   .then(res => res.json())
   .then(data => console.log(data));
 ```
 
-⚠️ **Antes de produção:** Altere `CorsConfig.java` para aceitar apenas seu domínio!
+⚠️ **Antes de produção:** Configure `CORS_ALLOWED_ORIGINS` com apenas o domínio real do frontend.
 
 ---
 
 ## 📝 Notas Importantes
 
 1. **Segurança**: Mude o `API_SECURITY_TOKEN_SECRET` em produção!
-2. **CORS**: Em produção, configure apenas origens específicas no `CorsConfig.java`
+2. **CORS**: Em produção, configure apenas origens específicas em `CORS_ALLOWED_ORIGINS`
 3. **Autorização**: Usuários só podem editar/deletar suas próprias runs
 4. **Formato de tempo**: Use "HH:MM" para runTime (ex: "2:30" = 2h30min)
 5. **Flyway**: Migrations rodam automaticamente no startup

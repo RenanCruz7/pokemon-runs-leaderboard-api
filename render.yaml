@@ -13,10 +13,12 @@ services:
         sync: false
       - key: SPRING_DATASOURCE_PASSWORD
         sync: false
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
       - key: API_SECURITY_TOKEN_SECRET
         generateValue: true
       - key: CORS_ALLOWED_ORIGINS
-        value: https://localhost:3000,https://*.vercel.app
+        sync: false
       - key: SPRING_JPA_HIBERNATE_DDL_AUTO
         value: validate
     healthCheckPath: /actuator/health
