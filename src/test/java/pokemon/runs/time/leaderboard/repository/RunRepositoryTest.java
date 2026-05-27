@@ -184,6 +184,19 @@ class RunRepositoryTest {
     }
 
     @Test
+    @DisplayName("Não deve buscar pokemon por correspondência parcial")
+    void testFindByPokemonInTeam_NoPartialMatch() {
+        // Arrange
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // Act
+        Page<Run> result = runRepository.findByPokemonInTeam("Pika", pageable);
+
+        // Assert
+        assertEquals(0, result.getTotalElements());
+    }
+
+    @Test
     @DisplayName("Deve contar runs por game")
     void testCountRunsByGame_Success() {
         // Act

@@ -106,7 +106,7 @@ public class RunService {
     }
 
     public Page<Run> findByPokemonInTeam(String pokemon, Pageable pageable) {
-        return runRepository.findByPokemonInTeam(pokemon, pageable);
+        return runRepository.findByPokemonInTeam(pokemon.trim(), pageable);
     }
 
     public List<RunsCountByGameDTO> getRunsCountByGame() {
