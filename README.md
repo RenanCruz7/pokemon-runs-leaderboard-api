@@ -1,86 +1,247 @@
-# 🎮 Pokémon Runs Leaderboard API
+# Pokemon Runs Leaderboard API
 
-API REST para gerenciar um leaderboard de speedruns de jogos Pokémon com autenticação JWT.
+API REST para gerenciamento de runs de jogos Pokemon com autenticacao JWT, persistencia relacional, filtros, estatisticas e exportacao CSV.
 
-## ✨ Características
+## Objetivo do projeto
 
-- 🔐 Autenticação JWT
-- 🏃 CRUD completo de runs
-- 📊 Estatísticas e filtros avançados
-- 🌐 **CORS habilitado para desenvolvimento frontend**
-- 🐘 PostgreSQL como banco de dados
-- 🔄 Migrations com Flyway
-- 🐳 Deploy com Docker
+Este projeto serve como base tecnica para demonstrar desenvolvimento Java Web com Spring Boot em um cenario monolitico orientado a manutencao evolutiva.
 
----
+Na fase atual, o foco do repositorio e mostrar com clareza:
 
-### 📋 Pré-requisitos
-- Docker instalado
-- Docker Compose instalado
+- o que ja esta implementado de verdade
+- quais requisitos da vaga ja sao atendidos
+- quais gaps ainda existem
+- qual a ordem planejada de evolucao
 
-### 🔧 Passo a Passo
+## Estado atual real
 
-#### 1. Clone o repositório (se ainda não fez)
-```bash
-cd /home/renan/Documentos/pokemon-runs-leaderboard-api
+Hoje a aplicacao entrega:
+
+- API REST com autenticacao JWT
+- cadastro, login, troca de senha e reset de senha por token persistido
+- CRUD de runs com validacoes e controle de ownership
+- filtros por jogo, tempo maximo, status da Pokedex e Pokemon no time
+- estatisticas agregadas por jogo e por Pokemon
+- exportacao CSV
+- consumo de servico REST externo
+- consumo de servico SOAP externo
+- migrations com Flyway
+- execucao local com Docker Compose
+- health check com Spring Boot Actuator
+- testes unitarios, integracao com H2 e teste com PostgreSQL real via Testcontainers
+
+## Stack atual
+
+- Java 21
+- Spring Boot 3.5.6
+- Spring Web
+- Spring Web Services
+- Spring Data JPA
+- Spring Security
+- Bean Validation
+- Flyway
+- PostgreSQL
+- H2 para parte da suite de testes
+- Testcontainers para validacao com PostgreSQL real
+- Maven
+- Docker e Docker Compose
+
+## Arquitetura e responsabilidades por camada
+
+O projeto segue uma estrutura monolitica simples, com separacao por responsabilidade:
+
+- `controller`: expoe endpoints REST, recebe parametros HTTP e converte respostas para DTOs
+- `service`: concentra regras de negocio, validacoes de fluxo e orquestracao entre camadas
+- `repository`: acesso a dados com Spring Data JPA e queries customizadas
+- `domain`: entidades JPA persistidas no banco
+- `dto`: contratos de entrada e saida da API
+- `infra/security`: autenticacao JWT, filtro de seguranca e configuracao do Spring Security
+- `infra/errors`: tratamento centralizado de erros e respostas padronizadas
+- `utils`: conversores auxiliares, como parse de duracao e serializacao de lista em coluna textual
+- `src/main/resources/db/migration`: versionamento do schema com Flyway
+
+## Trade-offs tecnicos atuais
+
+- O projeto esta otimizado para PostgreSQL neste momento. A configuracao principal e as migrations assumem PostgreSQL como banco padrao.
+- Parte das consultas de relatorio e busca ainda depende de SQL mais aderente ao PostgreSQL, o que explica a fase dedicada a compatibilidade real com MySQL.
+- O campo `pokemonTeam` e persistido em uma unica coluna textual via conversor. Isso simplifica o modelo atual, mas aumenta o custo de portabilidade e consulta.
+- A suite de testes usa H2 para velocidade e um teste separado com PostgreSQL real para cobrir comportamento especifico de banco.
+- O profile `local` usa `ddl-auto=update` para produtividade local, enquanto o profile base/producao trabalha com configuracao mais restritiva.
+
+## Requisitos da vaga ja atendidos
+
+Este repositorio ja demonstra, com implementacao real:
+
+- desenvolvimento Java Web com Spring Boot
+- manutencao de aplicacao monolitica com separacao em camadas
+- API REST autenticada
+- consumo de integracoes REST e SOAP como cliente
+- persistencia relacional com JPA
+- migrations e evolucao de schema com Flyway
+- preocupacao com seguranca via JWT, hashing de senha e controle de acesso
+- tratamento centralizado de erros
+- qualidade basica com testes automatizados
+- containerizacao para execucao local
+- health check operacional
+
+## Gaps reais em relacao a vaga
+
+Os principais pontos ainda nao demonstrados pelo codigo atual sao:
+
+- compatibilidade real com MySQL
+- cache com Redis
+- exportacao Excel com Apache POI
+- exportacao PDF com iText
+- analise continua com SonarQube
+- evidencia de deploy mais proxima de ambiente corporativo tradicional, como WAR ou guia para WildFly/JBoss
+
+## Proximas fases planejadas
+
+- Fase 1: compatibilidade real com MySQL, incluindo testes automatizados
+- Fase 3: cache com Redis aplicado aos endpoints de leitura e estatisticas
+- Fase 4: exportacao Excel com Apache POI
+- Fase 5: qualidade continua com SonarQube
+- Fase 6: sinal de aderencia a ambiente corporativo tradicional
+- Fase 7: exportacao PDF
+- Fase 8: compose expandido com stack mais completa
+- Fase 9: material final de demonstracao para entrevista
+
+## Estrutura principal
+
+```text
+src/main/java/pokemon/runs/time/leaderboard/
+|- controller/
+|- domain/
+|- dto/
+|- infra/
+|  |- config/
+|  |- errors/
+|  \- security/
+|- repository/
+|- service/
+\- utils/
 ```
 
-#### 2. Verifique o arquivo .env
-Use `.env.example` como referência para as variáveis esperadas. Para execução local, configure `SPRING_PROFILES_ACTIVE=local`:
+## Profiles disponiveis
+
+- `local`: desenvolvimento local com defaults para PostgreSQL, JWT e CORS
+- `prod`: exige configuracao explicita de banco, segredo JWT e origens CORS
+- `test`: usado pela suite automatizada com H2 em memoria
+
+## Como executar localmente
+
+### Pre-requisitos
+
+- Docker
+- Docker Compose
+
+### Variaveis de ambiente
+
+Use `.env.example` como referencia. Para execucao local, o fluxo esperado hoje e:
+
 ```bash
-nano .env
+SPRING_PROFILES_ACTIVE=local
 ```
 
-Profiles disponíveis:
-- `local` - usa defaults locais para PostgreSQL, CORS e JWT.
-- `prod` - exige banco, CORS e `API_SECURITY_TOKEN_SECRET` via ambiente.
-- `test` - usado pela suíte automatizada com H2 em memória.
+As principais variaveis usadas pela aplicacao sao:
 
-#### 3. Inicie o projeto com Docker Compose
+- `SPRING_DATASOURCE_URL`
+- `SPRING_DATASOURCE_USERNAME`
+- `SPRING_DATASOURCE_PASSWORD`
+- `SPRING_JPA_HIBERNATE_DDL_AUTO`
+- `API_SECURITY_TOKEN_SECRET`
+- `CORS_ALLOWED_ORIGINS`
+- `INTEGRATION_HTTP_CONNECT_TIMEOUT`
+- `INTEGRATION_HTTP_READ_TIMEOUT`
+- `INTEGRATION_REST_POKE_API_BASE_URL`
+- `INTEGRATION_SOAP_NUMBER_CONVERSION_URL`
 
-**Comando principal (build e start):**
+### Subir com Docker Compose
+
 ```bash
 docker compose up --build
 ```
 
-Este comando irá:
-- ✅ Fazer o build da aplicação Java
-- ✅ Criar o container do PostgreSQL
-- ✅ Criar o container da aplicação
-- ✅ Executar as migrations do Flyway automaticamente
-- ✅ Iniciar a API na porta 8080
-- ✅ Aguardar o PostgreSQL ficar saudável antes de iniciar a API
+O ambiente atual sobe:
 
-**Para rodar em background (detached mode):**
+- `postgres`
+- `leaderboard-app`
+
+### Health check
+
 ```bash
-docker compose up --build -d
-```
-
-#### 4. Verificar se está rodando
-```bash
-# Ver logs em tempo real
-docker compose logs -f
-
-# Ver apenas logs da aplicação
-docker compose logs -f leaderboard-app
-
-# Ver status dos containers
-docker compose ps
-```
-
-#### 5. Testar a API
-
-A API estará disponível em: `http://localhost:8080`
-
-**Teste rápido:**
-```bash
-# Health check
 curl http://localhost:8080/actuator/health
 ```
 
-### 🧪 Testando a Autenticação e Criação de Runs
+## Integracoes externas da Fase 2
 
-#### 1. Registrar um usuário
+O projeto agora demonstra um caso de uso simples e isolado de integracao externa:
+
+- REST: consulta dados do Pokemon na PokeAPI
+- SOAP: converte o numero da Pokedex para texto usando o servico Number Conversion
+
+Fluxo exposto:
+
+- `GET /integrations/pokemon/{pokemon}`
+
+Exemplo:
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8080/integrations/pokemon/pikachu
+```
+
+Resposta esperada:
+
+```json
+{
+  "pokemon": "pikachu",
+  "pokedexNumber": 25,
+  "pokedexNumberInWords": "twenty five",
+  "baseExperience": 112,
+  "types": ["electric"]
+}
+```
+
+Comportamento de falha:
+
+- falha ou indisponibilidade externa retorna erro tratado e consistente
+- payload externo invalido retorna `502 Bad Gateway`
+- timeout externo e tratado na camada de cliente pelas configuracoes de timeout
+
+## Endpoints principais
+
+### Publicos
+
+- `POST /auth/register`
+- `POST /auth/login`
+- `POST /auth/forgot-password`
+- `POST /auth/reset-password`
+- `GET /actuator/health`
+
+### Protegidos
+
+- `PATCH /auth/change-password`
+- `GET /integrations/pokemon/{pokemon}`
+- `POST /runs`
+- `GET /runs`
+- `GET /runs/me`
+- `GET /runs/{id}`
+- `PATCH /runs/{id}`
+- `DELETE /runs/{id}`
+- `GET /runs/game/{game}`
+- `GET /runs/fastest?maxTime=HH:MM`
+- `GET /runs/pokedex?minStatus=100`
+- `GET /runs/team?pokemon=Pikachu`
+- `GET /runs/stats/count-by-game`
+- `GET /runs/stats/avg-time-by-game`
+- `GET /runs/stats/top-pokemons`
+- `GET /runs/export/csv`
+
+## Fluxo rapido de validacao
+
+### Registrar usuario
+
 ```bash
 curl -X POST http://localhost:8080/auth/register \
   -H "Content-Type: application/json" \
@@ -91,7 +252,8 @@ curl -X POST http://localhost:8080/auth/register \
   }'
 ```
 
-#### 2. Fazer login e pegar o token
+### Login
+
 ```bash
 TOKEN=$(curl -s -X POST http://localhost:8080/auth/login \
   -H "Content-Type: application/json" \
@@ -99,11 +261,10 @@ TOKEN=$(curl -s -X POST http://localhost:8080/auth/login \
     "username": "ash",
     "password": "pikachu123"
   }' | jq -r .token)
-
-echo "Seu token: $TOKEN"
 ```
 
-#### 3. Criar uma run (autenticado)
+### Criar run
+
 ```bash
 curl -X POST http://localhost:8080/runs \
   -H "Content-Type: application/json" \
@@ -112,214 +273,35 @@ curl -X POST http://localhost:8080/runs \
     "game": "Pokemon Red",
     "runTime": "2:30",
     "pokedexStatus": 150,
-    "pokemonTeam": ["Pikachu", "Charizard", "Blastoise", "Venusaur", "Lapras", "Snorlax"],
+    "pokemonTeam": ["Pikachu", "Charizard", "Blastoise"],
     "observation": "First speedrun attempt"
   }'
 ```
 
-#### 4. Listar todas as runs
-```bash
-curl -H "Authorization: Bearer $TOKEN" \
-  http://localhost:8080/runs
-```
+## Testes
 
-### 🛑 Parar e Gerenciar Containers
+Executar a suite principal:
 
 ```bash
-# Parar os containers (mantém volumes)
-docker compose stop
-
-# Parar e remover containers
-docker compose down
-
-# Parar, remover containers E volumes (apaga o banco!)
-docker compose down -v
-
-# Reiniciar apenas a aplicação (sem rebuild)
-docker compose restart leaderboard-app
-
-# Ver logs de erro
-docker compose logs leaderboard-app --tail=100
+./mvnw test
 ```
 
-### 🔄 Rebuild após mudanças no código
+Cobertura atual de validacao:
 
-Quando você fizer alterações no código Java:
+- testes unitarios de servicos, DTOs, seguranca e configuracao
+- testes de integracao de controllers
+- testes de repositorio com H2 para fluxo rapido
+- teste com PostgreSQL real via Testcontainers para migrations e queries especificas
+- testes de integracao cobrindo cenario feliz e falhas das integracoes REST e SOAP
 
-```bash
-# Rebuild e reiniciar
-docker compose up --build
+## Infra atual
 
-# Ou forçar rebuild completo
-docker compose build --no-cache
-docker compose up
-```
+O `compose.yaml` atual sobe apenas PostgreSQL e a aplicacao Spring Boot. Redis, MySQL e SonarQube ainda nao fazem parte do ambiente local padrao porque pertencem a fases futuras.
 
-### 📊 Endpoints Disponíveis
+## Checklist de entregas tecnicas
 
-#### 🔓 Públicos (sem autenticação)
-- `POST /auth/register` - Registrar novo usuário
-- `POST /auth/login` - Fazer login e obter token JWT
-- `POST /auth/forgot-password` - Solicitar redefinição de senha
-- `POST /auth/reset-password` - Redefinir senha
-- `GET /actuator/health` - Health check da aplicação
+O acompanhamento das fases esta em `CHECKLIST.md`. A Fase 0 cobre documentacao de baseline, narrativa tecnica e alinhamento entre README, estado real do codigo e proximas entregas.
 
-#### 🔒 Protegidos (requer token JWT no header `Authorization: Bearer {token}`)
+## Resumo para entrevista
 
-**Runs:**
-- `POST /runs` - Criar nova run
-- `GET /runs` - Listar todas as runs (paginado)
-- `GET /runs/{id}` - Buscar run por ID
-- `PATCH /runs/{id}` - Atualizar run (apenas o dono)
-- `DELETE /runs/{id}` - Deletar run (apenas o dono)
-
-**Filtros:**
-- `GET /runs/game/{game}` - Filtrar por jogo
-- `GET /runs/fastest?maxTime=PT2H` - Runs mais rápidas
-- `GET /runs/pokedex?minStatus=100` - Filtrar por Pokédex
-- `GET /runs/team?pokemon=Pikachu` - Filtrar por Pokémon no time
-
-**Estatísticas:**
-- `GET /runs/stats/count-by-game` - Contagem de runs por jogo
-- `GET /runs/stats/avg-time-by-game` - Tempo médio por jogo
-- `GET /runs/stats/top-pokemons` - Top 10 Pokémon mais usados
-
-**Exportação:**
-- `GET /runs/export/csv` - Exportar runs em CSV
-
-### 🗄️ Acessar o PostgreSQL
-
-```bash
-# Via Docker
-docker compose exec postgres psql -U postgres -d leaderboard_db
-
-# Ou via host (se tiver psql instalado)
-psql -h localhost -U postgres -d leaderboard_db
-```
-
-Senha padrão: `postgres`
-
-**Queries úteis:**
-```sql
--- Ver todos os usuários
-SELECT * FROM users;
-
--- Ver todas as runs com usuário
-SELECT r.id, r.game, r.run_time, u.username 
-FROM runs r 
-JOIN users u ON r.user_id = u.id;
-
--- Ver runs de um usuário específico
-SELECT * FROM runs WHERE user_id = 1;
-```
-
-### 🐛 Troubleshooting
-
-**Problema: Porta 8080 já em uso**
-```bash
-# Mudar porta no compose.yaml
-# De: '8080:8080'
-# Para: '8081:8080'
-```
-
-**Problema: Erro de conexão com banco**
-```bash
-# Ver logs do postgres
-docker compose logs postgres
-
-# Verificar se postgres está healthy
-docker compose ps
-```
-
-Se o volume local foi criado antes da correção do caminho do PostgreSQL, recrie os volumes:
-```bash
-docker compose down -v
-docker compose up --build
-```
-
-**Problema: Migrations falhando**
-```bash
-# Apagar volume e recriar
-docker compose down -v
-docker compose up --build
-```
-
-**Problema: Token JWT inválido**
-- Verifique se a variável `API_SECURITY_TOKEN_SECRET` está no `.env`
-- Recrie o token fazendo login novamente
-
-**Problema: app falha ao iniciar por variável ausente**
-- Em desenvolvimento, defina `SPRING_PROFILES_ACTIVE=local`
-- Em produção, configure explicitamente `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`, `API_SECURITY_TOKEN_SECRET` e `CORS_ALLOWED_ORIGINS`
-
-### 📦 Estrutura do Projeto
-
-```
-pokemon-runs-leaderboard-api/
-├── src/
-│   └── main/
-│       ├── java/pokemon/runs/time/leaderboard/
-│       │   ├── controller/          # Controllers REST
-│       │   ├── service/             # Lógica de negócio
-│       │   ├── repository/          # Acesso ao banco
-│       │   ├── domain/              # Entidades JPA
-│       │   ├── dto/                 # Data Transfer Objects
-│       │   ├── infra/security/      # Configuração de segurança JWT
-│       │   └── utils/               # Conversores e utilitários
-│       └── resources/
-│           ├── application.properties
-│           └── db/migration/        # Migrations Flyway
-├── compose.yaml                     # Docker Compose config
-├── Dockerfile                       # Build da aplicação
-├── .env                            # Variáveis de ambiente
-└── pom.xml                         # Dependências Maven
-```
-
-### ✨ Tecnologias
-
-- ☕ Java 21
-- 🍃 Spring Boot 3.5.6
-- 🔐 Spring Security + JWT
-- 🗄️ PostgreSQL
-- 🔄 Flyway (migrations)
-- 🐳 Docker & Docker Compose
-- 📦 Maven
-
----
-
-## 📚 Documentação Completa
-
-### Para Desenvolvedores Frontend
-
-- **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** - Documentação completa de todos os endpoints e DTOs
-- **[REACT_INTEGRATION_GUIDE.md](REACT_INTEGRATION_GUIDE.md)** - Guia completo de integração com React
-- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Referência rápida de endpoints
-- **[CORS_CONFIGURATION.md](CORS_CONFIGURATION.md)** - Detalhes sobre configuração CORS
-- **[CORS_SETUP_SUMMARY.md](CORS_SETUP_SUMMARY.md)** - Resumo das configurações CORS implementadas
-
-### 🌐 CORS Habilitado
-
-A API aceita apenas as origens configuradas em `CORS_ALLOWED_ORIGINS`. Sem essa variável, o fallback permite `http://localhost:*` para desenvolvimento local:
-
-```javascript
-fetch('http://localhost:8080/runs')
-  .then(res => res.json())
-  .then(data => console.log(data));
-```
-
-⚠️ **Antes de produção:** Configure `CORS_ALLOWED_ORIGINS` com apenas o domínio real do frontend.
-
----
-
-## 📝 Notas Importantes
-
-1. **Segurança**: Mude o `API_SECURITY_TOKEN_SECRET` em produção!
-2. **CORS**: Em produção, configure apenas origens específicas em `CORS_ALLOWED_ORIGINS`
-3. **Autorização**: Usuários só podem editar/deletar suas próprias runs
-4. **Formato de tempo**: Use "HH:MM" para runTime (ex: "2:30" = 2h30min)
-5. **Flyway**: Migrations rodam automaticamente no startup
-
----
-
-Desenvolvido com ❤️ e ☕
-
+Hoje o projeto demonstra uma API Spring Boot monolitica, autenticada e testada, com PostgreSQL, Flyway, operacao local por containers e consumo de servicos REST e SOAP externos. O proximo passo planejado e reduzir os gaps mais aderentes a vaga: MySQL, Redis e qualidade continua.

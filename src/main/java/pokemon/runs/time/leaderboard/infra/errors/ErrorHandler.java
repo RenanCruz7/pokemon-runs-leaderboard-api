@@ -60,6 +60,12 @@ public class ErrorHandler {
         return ResponseEntity.status(409).body(new ErrorResponse("Recurso duplicado", ex.getMessage()));
     }
 
+    @ExceptionHandler(ExternalServiceException.class)
+    public ResponseEntity<ErrorResponse> handleExternalServiceException(ExternalServiceException ex) {
+        log.warn("External service failure [{}]: {}", ex.getServiceName(), ex.getMessage());
+        return ResponseEntity.status(ex.getStatus()).body(new ErrorResponse("Falha em integracao externa", ex.getMessage()));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
         log.warn("Invalid argument: {}", ex.getMessage());

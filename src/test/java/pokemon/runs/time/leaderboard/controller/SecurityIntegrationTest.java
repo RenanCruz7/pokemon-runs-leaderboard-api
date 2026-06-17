@@ -93,6 +93,9 @@ class SecurityIntegrationTest {
         mockMvc.perform(get("/runs"))
                 .andExpect(status().isUnauthorized());
 
+        mockMvc.perform(get("/integrations/pokemon/pikachu"))
+                .andExpect(status().isUnauthorized());
+
         CreateRunDTO run = new CreateRunDTO(
                 "Pokemon Red",
                 "2:30",
