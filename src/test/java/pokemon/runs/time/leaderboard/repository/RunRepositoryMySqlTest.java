@@ -72,7 +72,7 @@ class RunRepositoryMySqlTest {
     @Test
     @DisplayName("Flyway aplica todas as migrations no MySQL real")
     void flywayAppliesAllMigrations() {
-        assertEquals("6", flyway.info().current().getVersion().getVersion());
+        assertEquals("7", flyway.info().current().getVersion().getVersion());
     }
 
     @Test

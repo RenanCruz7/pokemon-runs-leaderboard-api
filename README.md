@@ -27,6 +27,8 @@ Hoje a aplicacao entrega:
 - consumo de servico SOAP externo
 - compatibilidade configurada para PostgreSQL e MySQL
 - cache com Redis para listagens e estatisticas
+- exportacao Excel com Apache POI
+- analise de qualidade com SonarQube e JaCoCo
 - migrations com Flyway
 - execucao local com Docker Compose
 - health check com Spring Boot Actuator
@@ -45,6 +47,9 @@ Hoje a aplicacao entrega:
 - PostgreSQL
 - MySQL
 - Redis
+- Apache POI
+- SonarQube
+- JaCoCo
 - H2 para parte da suite de testes
 - Testcontainers para validacao com PostgreSQL e MySQL reais
 - Maven
@@ -83,6 +88,8 @@ Este repositorio ja demonstra, com implementacao real:
 - consumo de integracoes REST e SOAP como cliente
 - compatibilidade real de configuracao para PostgreSQL e MySQL
 - uso de Redis em cenarios de leitura e performance
+- exportacao Excel com Apache POI
+- analise continua com SonarQube
 - persistencia relacional com JPA
 - migrations e evolucao de schema com Flyway
 - preocupacao com seguranca via JWT, hashing de senha e controle de acesso
@@ -95,16 +102,11 @@ Este repositorio ja demonstra, com implementacao real:
 
 Os principais pontos ainda nao demonstrados pelo codigo atual sao:
 
-- cache com Redis
-- exportacao Excel com Apache POI
 - exportacao PDF com iText
-- analise continua com SonarQube
 - evidencia de deploy mais proxima de ambiente corporativo tradicional, como WAR ou guia para WildFly/JBoss
 
 ## Proximas fases planejadas
 
-- Fase 4: exportacao Excel com Apache POI
-- Fase 5: qualidade continua com SonarQube
 - Fase 6: sinal de aderencia a ambiente corporativo tradicional
 - Fase 7: exportacao PDF
 - Fase 8: compose expandido com stack mais completa
@@ -164,6 +166,11 @@ As principais variaveis usadas pela aplicacao sao:
 - `SPRING_CACHE_REDIS_TTL`
 - `SPRING_DATA_REDIS_HOST`
 - `SPRING_DATA_REDIS_PORT`
+- `SONARQUBE_DB_NAME`
+- `SONARQUBE_DB_USER`
+- `SONARQUBE_DB_PASSWORD`
+- `SONAR_HOST_URL`
+- `SONAR_TOKEN`
 - `INTEGRATION_HTTP_CONNECT_TIMEOUT`
 - `INTEGRATION_HTTP_READ_TIMEOUT`
 - `INTEGRATION_REST_POKE_API_BASE_URL`
@@ -180,6 +187,8 @@ O ambiente atual sobe:
 - `postgres`
 - `mysql`
 - `redis`
+- `sonarqube-db`
+- `sonarqube`
 - `leaderboard-app`
 
 ### Executar com PostgreSQL
@@ -233,6 +242,70 @@ Ganho esperado:
 - menos round-trips ao banco em chamadas repetidas
 - menor custo de recomputacao para estatisticas
 - melhor tempo de resposta em leituras que se repetem com frequencia
+
+## Exportacao Excel da Fase 4
+
+O projeto agora expoe tambem uma exportacao corporativa em Excel:
+
+- `GET /runs/export/excel`
+
+Arquivo gerado:
+
+- `leaderboard.xlsx`
+
+Colunas incluidas:
+
+- jogador
+- jogo
+- tempo
+- pokedex
+- time
+- data de criacao
+
+Qualidade aplicada:
+
+- cabecalho em destaque
+- largura automatica por coluna
+- suporte a caracteres especiais pelo formato `.xlsx`
+- teste automatizado abrindo o workbook e validando conteudo basico
+
+## Qualidade continua da Fase 5
+
+O projeto agora inclui base de analise continua com SonarQube:
+
+- plugin Sonar no Maven
+- cobertura com JaCoCo em `verify`
+- workflow de CI com etapa de analise Sonar quando `SONAR_HOST_URL` e `SONAR_TOKEN` estiverem configurados
+- stack local com `sonarqube` e `sonarqube-db` no `compose.yaml`
+
+Comando padrao de analise local:
+
+```bash
+./mvnw clean verify sonar:sonar \
+  -Dsonar.host.url=http://localhost:9000 \
+  -Dsonar.token=$SONAR_TOKEN \
+  -Dsonar.qualitygate.wait=true
+```
+
+Fluxo local sugerido:
+
+```bash
+docker compose up -d sonarqube-db sonarqube
+./mvnw clean verify sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.token=$SONAR_TOKEN -Dsonar.qualitygate.wait=true
+```
+
+Metricas acompanhadas nesta fase:
+
+- bugs
+- vulnerabilidades
+- code smells
+- cobertura
+- duplicacao
+
+Melhoria real aplicada junto da fase:
+
+- cobertura ampliada com testes adicionais
+- ajuste de code smell em `User#getAuthorities` para evitar `NullPointerException`
 
 ### Health check
 
@@ -304,6 +377,7 @@ Comportamento de falha:
 - `GET /runs/stats/avg-time-by-game`
 - `GET /runs/stats/top-pokemons`
 - `GET /runs/export/csv`
+- `GET /runs/export/excel`
 
 ## Fluxo rapido de validacao
 
@@ -361,10 +435,12 @@ Cobertura atual de validacao:
 - testes com PostgreSQL e MySQL via Testcontainers para migrations, queries e estatisticas
 - testes de integracao cobrindo cenario feliz e falhas das integracoes REST e SOAP
 - testes de cache e invalidacao com `spring.cache.type=simple`
+- testes da geracao e exposicao do arquivo Excel
+- relatorio de cobertura JaCoCo gerado no ciclo `verify`
 
 ## Infra atual
 
-O `compose.yaml` atual sobe PostgreSQL, MySQL, Redis e a aplicacao Spring Boot. SonarQube ainda nao faz parte do ambiente local padrao porque pertence a fase futura.
+O `compose.yaml` atual sobe PostgreSQL, MySQL, Redis, SonarQube e a aplicacao Spring Boot.
 
 ## Checklist de entregas tecnicas
 
@@ -372,4 +448,4 @@ O acompanhamento das fases esta em `CHECKLIST.md`. A Fase 0 cobre documentacao d
 
 ## Resumo para entrevista
 
-Hoje o projeto demonstra uma API Spring Boot monolitica, autenticada e testada, com PostgreSQL, MySQL, Redis, Flyway, operacao local por containers e consumo de servicos REST e SOAP externos. O proximo passo planejado e reduzir os gaps mais aderentes a vaga: qualidade continua, relatorios e evidencias de ambiente corporativo.
+Hoje o projeto demonstra uma API Spring Boot monolitica, autenticada e testada, com PostgreSQL, MySQL, Redis, SonarQube, Flyway, operacao local por containers, consumo de servicos REST e SOAP externos e exportacao Excel. O proximo passo planejado e reduzir os gaps mais aderentes a vaga: PDF e evidencias de ambiente corporativo.

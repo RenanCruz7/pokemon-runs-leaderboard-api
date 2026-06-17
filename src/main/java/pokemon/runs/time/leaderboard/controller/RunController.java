@@ -147,4 +147,13 @@ public class RunController {
         headers.setContentType(MediaType.TEXT_PLAIN);
         return ResponseEntity.ok().headers(headers).body(csv);
     }
+
+    @GetMapping("/export/excel")
+    public ResponseEntity<byte[]> exportRunsToExcel() {
+        byte[] excel = runService.exportRunsToExcel();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=leaderboard.xlsx");
+        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        return ResponseEntity.ok().headers(headers).body(excel);
+    }
 }

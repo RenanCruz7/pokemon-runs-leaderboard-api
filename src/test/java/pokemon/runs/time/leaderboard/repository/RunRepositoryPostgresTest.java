@@ -68,7 +68,7 @@ class RunRepositoryPostgresTest {
     @Test
     @DisplayName("Flyway aplica todas as migrations no PostgreSQL real")
     void flywayAppliesAllMigrations() {
-        assertEquals("6", flyway.info().current().getVersion().getVersion());
+        assertEquals("7", flyway.info().current().getVersion().getVersion());
     }
 
     @Test

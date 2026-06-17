@@ -41,10 +41,11 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if(this.role.equals("ADMIN")) {
+        if ("ADMIN".equals(this.role)) {
             return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
         }
-        else return List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
+
+        return List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
     }
 
     @Override

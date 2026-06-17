@@ -1,5 +1,6 @@
 package pokemon.runs.time.leaderboard.service;
 
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,10 +21,12 @@ import pokemon.runs.time.leaderboard.infra.errors.UnauthorizedException;
 import pokemon.runs.time.leaderboard.repository.run.RunRepository;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.io.ByteArrayInputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -62,6 +65,7 @@ class RunServiceTest {
         testRun.setPokedexStatus(151);
         testRun.setPokemonTeam(Arrays.asList("Pikachu", "Charizard", "Blastoise"));
         testRun.setObservation("Speed run");
+        testRun.setCreatedAt(LocalDateTime.of(2026, 6, 17, 10, 30, 0));
         testRun.setUser(testUser);
 
         // Criar DTOs de teste
@@ -459,5 +463,33 @@ class RunServiceTest {
                 result.stream().collect(Collectors.toMap(pokemon -> pokemon.pokemon(), pokemon -> pokemon.count()))
         );
         verify(runRepository, times(1)).findAll();
+    }
+
+    @Test
+    @DisplayName("Deve gerar arquivo Excel com colunas esperadas")
+    void testExportRunsToExcel_Success() throws Exception {
+        when(runRepository.findAll()).thenReturn(List.of(testRun));
+
+        byte[] excel = runService.exportRunsToExcel();
+
+        assertNotNull(excel);
+        assertTrue(excel.length > 0);
+
+        try (XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(excel))) {
+            var sheet = workbook.getSheet("Leaderboard");
+            assertNotNull(sheet);
+            assertEquals("Jogador", sheet.getRow(0).getCell(0).getStringCellValue());
+            assertEquals("Jogo", sheet.getRow(0).getCell(1).getStringCellValue());
+            assertEquals("Tempo", sheet.getRow(0).getCell(2).getStringCellValue());
+            assertEquals("Pokedex", sheet.getRow(0).getCell(3).getStringCellValue());
+            assertEquals("Time", sheet.getRow(0).getCell(4).getStringCellValue());
+            assertEquals("Data de criacao", sheet.getRow(0).getCell(5).getStringCellValue());
+            assertEquals("testuser", sheet.getRow(1).getCell(0).getStringCellValue());
+            assertEquals("Pokemon Red", sheet.getRow(1).getCell(1).getStringCellValue());
+            assertEquals("02:30", sheet.getRow(1).getCell(2).getStringCellValue());
+            assertEquals(151, (int) sheet.getRow(1).getCell(3).getNumericCellValue());
+            assertEquals("Pikachu, Charizard, Blastoise", sheet.getRow(1).getCell(4).getStringCellValue());
+            assertEquals("2026-06-17 10:30:00", sheet.getRow(1).getCell(5).getStringCellValue());
+        }
     }
 }

@@ -411,5 +411,17 @@ class RunControllerIntegrationTest {
                 .andExpect(content().string(containsString("id,game,runTime,pokedexStatus,pokemonTeam,observation")))
                 .andExpect(content().string(containsString("Pokemon Red")));
     }
-}
 
+    @Test
+    @DisplayName("GET /runs/export/excel - Deve exportar runs em Excel")
+    void testExportRunsToExcel_Success() throws Exception {
+        mockMvc.perform(get("/runs/export/excel")
+                        .header("Authorization", "Bearer " + testUserToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .andExpect(header().string("Content-Disposition", "attachment; filename=leaderboard.xlsx"))
+                .andExpect(result -> org.junit.jupiter.api.Assertions.assertTrue(
+                        result.getResponse().getContentAsByteArray().length > 0
+                ));
+    }
+}

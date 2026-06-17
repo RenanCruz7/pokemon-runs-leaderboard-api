@@ -159,6 +159,17 @@ class UserTest {
         assertEquals(1, customerAuthorities.size());
     }
 
+    @Test
+    @DisplayName("GetAuthorities - Deve retornar CUSTOMER quando role estiver nula")
+    void testGetAuthorities_NullRoleFallsBackToCustomer() {
+        user.setRole(null);
+
+        var authorities = user.getAuthorities();
+
+        assertEquals(1, authorities.size());
+        assertTrue(authorities.contains(new SimpleGrantedAuthority("ROLE_CUSTOMER")));
+    }
+
     // ==================== ACCOUNT STATUS TESTS ====================
 
     @Test
@@ -269,4 +280,3 @@ class UserTest {
         assertFalse(userString.isEmpty());
     }
 }
-

@@ -50,6 +50,45 @@ services:
       timeout: 5s
       retries: 5
 
+  sonarqube-db:
+    image: 'postgres:17-alpine'
+    environment:
+      POSTGRES_DB: ${SONARQUBE_DB_NAME:-sonarqube}
+      POSTGRES_USER: ${SONARQUBE_DB_USER:-sonar}
+      POSTGRES_PASSWORD: ${SONARQUBE_DB_PASSWORD:-sonar}
+    volumes:
+      - sonarqube_db_data:/var/lib/postgresql/data
+    networks:
+      - leaderboard-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SONARQUBE_DB_USER:-sonar} -d ${SONARQUBE_DB_NAME:-sonarqube}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  sonarqube:
+    image: 'sonarqube:community'
+    ports:
+      - '9000:9000'
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonarqube-db:5432/${SONARQUBE_DB_NAME:-sonarqube}
+      SONAR_JDBC_USERNAME: ${SONARQUBE_DB_USER:-sonar}
+      SONAR_JDBC_PASSWORD: ${SONARQUBE_DB_PASSWORD:-sonar}
+    depends_on:
+      sonarqube-db:
+        condition: service_healthy
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    networks:
+      - leaderboard-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9000/api/system/status"]
+      interval: 20s
+      timeout: 10s
+      retries: 15
+
   leaderboard-app:
     build:
       context: .
@@ -88,6 +127,10 @@ volumes:
   postgres_data:
   mysql_data:
   redis_data:
+  sonarqube_db_data:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
 
 networks:
   leaderboard-network:

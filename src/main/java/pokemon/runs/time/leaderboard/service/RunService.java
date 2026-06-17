@@ -2,6 +2,15 @@ package pokemon.runs.time.leaderboard.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -28,6 +37,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.time.Duration;
+import java.time.format.DateTimeFormatter;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 @Service
 public class RunService {
@@ -39,6 +51,8 @@ public class RunService {
 
     @Autowired
     private RunRepository runRepository;
+
+    private static final DateTimeFormatter EXCEL_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Caching(evict = {
             @CacheEvict(cacheNames = RUNS_CACHE, allEntries = true),
@@ -221,6 +235,55 @@ public class RunService {
               .append("\n");
         }
         return sb.toString();
+    }
+
+    public byte[] exportRunsToExcel() {
+        List<Run> runs = runRepository.findAll();
+
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            Sheet sheet = workbook.createSheet("Leaderboard");
+
+            String[] headers = {"Jogador", "Jogo", "Tempo", "Pokedex", "Time", "Data de criacao"};
+            createHeaderRow(sheet, headers, workbook);
+
+            int rowIndex = 1;
+            for (Run run : runs) {
+                Row row = sheet.createRow(rowIndex++);
+                row.createCell(0).setCellValue(run.getUser().getUsername());
+                row.createCell(1).setCellValue(run.getGame());
+                row.createCell(2).setCellValue(RunTimeParser.format(run.getRunTime()));
+                row.createCell(3).setCellValue(run.getPokedexStatus());
+                row.createCell(4).setCellValue(run.getPokemonTeam() == null ? "" : String.join(", ", run.getPokemonTeam()));
+                row.createCell(5).setCellValue(run.getCreatedAt() == null ? "" : EXCEL_DATE_FORMAT.format(run.getCreatedAt()));
+            }
+
+            for (int column = 0; column < headers.length; column++) {
+                sheet.autoSizeColumn(column);
+            }
+
+            workbook.write(outputStream);
+            return outputStream.toByteArray();
+        } catch (IOException ex) {
+            throw new IllegalStateException("Falha ao gerar arquivo Excel", ex);
+        }
+    }
+
+    private void createHeaderRow(Sheet sheet, String[] headers, Workbook workbook) {
+        Row headerRow = sheet.createRow(0);
+
+        CellStyle headerStyle = workbook.createCellStyle();
+        Font headerFont = workbook.createFont();
+        headerFont.setBold(true);
+        headerStyle.setFont(headerFont);
+        headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerStyle.setAlignment(HorizontalAlignment.CENTER);
+
+        for (int index = 0; index < headers.length; index++) {
+            var cell = headerRow.createCell(index);
+            cell.setCellValue(headers[index]);
+            cell.setCellStyle(headerStyle);
+        }
     }
 
     private String csvValue(Object value) {
