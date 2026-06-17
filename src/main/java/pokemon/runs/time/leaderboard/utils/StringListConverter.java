@@ -2,16 +2,26 @@ package pokemon.runs.time.leaderboard.utils;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.ArrayList;
 
 @Converter
 public class StringListConverter implements AttributeConverter<List<String>, String> {
 
     @Override
     public String convertToDatabaseColumn(List<String> list) {
-        return list == null || list.isEmpty() ? null : String.join(",", list);
+        if (list == null || list.isEmpty()) {
+            return null;
+        }
+
+        List<String> normalizedValues = list.stream()
+                .filter(value -> value != null)
+                .map(String::trim)
+                .filter(value -> !value.isEmpty())
+                .toList();
+
+        return normalizedValues.isEmpty() ? null : String.join(",", normalizedValues);
     }
 
     @Override
@@ -19,6 +29,10 @@ public class StringListConverter implements AttributeConverter<List<String>, Str
         if (joined == null || joined.trim().isEmpty()) {
             return new ArrayList<>();
         }
-        return new ArrayList<>(Arrays.asList(joined.split(",")));
+
+        return new ArrayList<>(Arrays.stream(joined.split(","))
+                .map(String::trim)
+                .filter(value -> !value.isEmpty())
+                .toList());
     }
 }

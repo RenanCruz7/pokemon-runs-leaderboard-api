@@ -36,18 +36,5 @@ public interface RunRepository extends JpaRepository<Run, Long> {
     @Query("SELECT new pokemon.runs.time.leaderboard.dto.runs.AvgRunTimeByGameDTO(r.game, AVG(r.runTime)) FROM runs r GROUP BY r.game")
     List<AvgRunTimeByGameDTO> avgRunTimeByGame();
 
-    @Query(value = """
-            SELECT pokemon, COUNT(*) AS count
-            FROM (
-                SELECT TRIM(unnest(string_to_array(COALESCE(pokemon_team, ''), ','))) AS pokemon
-                FROM runs
-            ) AS team
-            WHERE pokemon <> ''
-            GROUP BY pokemon
-            ORDER BY count DESC, pokemon ASC
-            LIMIT 10
-            """, nativeQuery = true)
-    List<Object[]> topPokemonsUsed();
-
     Page<Run> findByUserId(Long userId, Pageable pageable);
 }

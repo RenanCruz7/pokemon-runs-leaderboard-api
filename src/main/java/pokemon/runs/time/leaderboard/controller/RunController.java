@@ -48,8 +48,7 @@ public class RunController {
 
     @GetMapping
     public ResponseEntity<Page<DetailsRunDTO>> getAllRuns(@PageableDefault(size = 10) Pageable pageable) {
-        var runs = runService.getAllRuns(pageable);
-        return ResponseEntity.ok(runs.map(DetailsRunDTO::new));
+        return ResponseEntity.ok(runService.getAllRunsCached(pageable));
     }
 
     @GetMapping("/me")
@@ -72,8 +71,7 @@ public class RunController {
     public ResponseEntity<Page<DetailsRunDTO>> getRunsByGame(
             @PathVariable String game,
             @PageableDefault(size = 10) Pageable pageable) {
-        var runs = runService.findByGame(game, pageable);
-        return ResponseEntity.ok(runs.map(DetailsRunDTO::new));
+        return ResponseEntity.ok(runService.findByGameCached(game, pageable));
     }
 
     @DeleteMapping("/{id}")
@@ -128,17 +126,17 @@ public class RunController {
 
     @GetMapping("/stats/count-by-game")
     public ResponseEntity<List<RunsCountByGameDTO>> getRunsCountByGame() {
-        return ResponseEntity.ok(runService.getRunsCountByGame());
+        return ResponseEntity.ok(runService.getRunsCountByGameCached());
     }
 
     @GetMapping("/stats/avg-time-by-game")
     public ResponseEntity<List<AvgRunTimeByGameDTO>> getAvgRunTimeByGame() {
-        return ResponseEntity.ok(runService.getAvgRunTimeByGame());
+        return ResponseEntity.ok(runService.getAvgRunTimeByGameCached());
     }
 
     @GetMapping("/stats/top-pokemons")
     public ResponseEntity<List<TopPokemonDTO>> getTopPokemonsUsed() {
-        return ResponseEntity.ok(runService.getTopPokemonsUsed());
+        return ResponseEntity.ok(runService.getTopPokemonsUsedCached());
     }
 
     @GetMapping("/export/csv")

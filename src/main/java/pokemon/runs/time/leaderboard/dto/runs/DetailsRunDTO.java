@@ -4,6 +4,7 @@ import pokemon.runs.time.leaderboard.domain.run.Run;
 import pokemon.runs.time.leaderboard.dto.users.UserSummaryDTO;
 import pokemon.runs.time.leaderboard.utils.RunTimeParser;
 
+import java.io.Serializable;
 import java.util.List;
 
 public record DetailsRunDTO(
@@ -14,7 +15,7 @@ public record DetailsRunDTO(
         List<String> pokemonTeam,
         String observation,
         UserSummaryDTO user
-) {
+) implements Serializable {
 
     public DetailsRunDTO(Run run) {
         this(

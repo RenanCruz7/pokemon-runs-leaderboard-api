@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -439,5 +440,24 @@ class RunServiceTest {
         assertTrue(csv.contains("\"Run \"\"especial\"\", com vírgula\""));
         assertTrue(csv.contains("02:30"));
     }
-}
 
+    @Test
+    @DisplayName("Deve calcular top pokemons sem depender de SQL específico do banco")
+    void testGetTopPokemonsUsed_Success() {
+        Run secondRun = new Run();
+        secondRun.setPokemonTeam(Arrays.asList(" Pikachu ", "Bulbasaur", ""));
+
+        when(runRepository.findAll()).thenReturn(List.of(testRun, secondRun));
+
+        var result = runService.getTopPokemonsUsed();
+
+        assertFalse(result.isEmpty());
+        assertEquals("Pikachu", result.getFirst().pokemon());
+        assertEquals(2L, result.getFirst().count());
+        assertEquals(
+                java.util.Map.of("Pikachu", 2L, "Bulbasaur", 1L, "Charizard", 1L, "Blastoise", 1L),
+                result.stream().collect(Collectors.toMap(pokemon -> pokemon.pokemon(), pokemon -> pokemon.count()))
+        );
+        verify(runRepository, times(1)).findAll();
+    }
+}

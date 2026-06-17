@@ -219,28 +219,6 @@ class RunRepositoryTest {
     }
 
     @Test
-    @DisplayName("Deve buscar top pokemons usados")
-    @org.junit.jupiter.api.Disabled("Query usa funções específicas do PostgreSQL (unnest, string_to_array) não suportadas pelo H2")
-    void testTopPokemonsUsed_Success() {
-        // TESTE DESABILITADO: Query usa funções específicas do PostgreSQL não suportadas pelo H2
-        // Este teste só funciona com PostgreSQL em produção
-
-        // Para testar no H2, seria necessário reescrever a query ou mockar o resultado
-        // Uncomment below when testing against PostgreSQL:
-
-        /*
-        // Act
-        List<Object[]> result = runRepository.topPokemonsUsed();
-
-        // Assert
-        assertFalse(result.isEmpty());
-        // Pikachu deve estar no topo (aparece em 1 run)
-        String topPokemon = (String) result.get(0)[0];
-        assertTrue(Arrays.asList("Pikachu", "Charizard", "Blastoise", "Bulbasaur", "Squirtle").contains(topPokemon));
-        */
-    }
-
-    @Test
     @DisplayName("Deve deletar run com sucesso")
     void testDeleteRun_Success() {
         // Arrange
@@ -289,4 +267,3 @@ class RunRepositoryTest {
         assertEquals(2, result.getTotalPages());
     }
 }
-

@@ -25,10 +25,12 @@ Hoje a aplicacao entrega:
 - exportacao CSV
 - consumo de servico REST externo
 - consumo de servico SOAP externo
+- compatibilidade configurada para PostgreSQL e MySQL
+- cache com Redis para listagens e estatisticas
 - migrations com Flyway
 - execucao local com Docker Compose
 - health check com Spring Boot Actuator
-- testes unitarios, integracao com H2 e teste com PostgreSQL real via Testcontainers
+- testes unitarios, integracao com H2 e testes com PostgreSQL e MySQL via Testcontainers
 
 ## Stack atual
 
@@ -41,8 +43,10 @@ Hoje a aplicacao entrega:
 - Bean Validation
 - Flyway
 - PostgreSQL
+- MySQL
+- Redis
 - H2 para parte da suite de testes
-- Testcontainers para validacao com PostgreSQL real
+- Testcontainers para validacao com PostgreSQL e MySQL reais
 - Maven
 - Docker e Docker Compose
 
@@ -62,10 +66,11 @@ O projeto segue uma estrutura monolitica simples, com separacao por responsabili
 
 ## Trade-offs tecnicos atuais
 
-- O projeto esta otimizado para PostgreSQL neste momento. A configuracao principal e as migrations assumem PostgreSQL como banco padrao.
-- Parte das consultas de relatorio e busca ainda depende de SQL mais aderente ao PostgreSQL, o que explica a fase dedicada a compatibilidade real com MySQL.
+- O projeto usa migrations separadas por vendor no Flyway para manter compatibilidade entre PostgreSQL e MySQL sem forcar SQL artificialmente portavel.
 - O campo `pokemonTeam` e persistido em uma unica coluna textual via conversor. Isso simplifica o modelo atual, mas aumenta o custo de portabilidade e consulta.
-- A suite de testes usa H2 para velocidade e um teste separado com PostgreSQL real para cobrir comportamento especifico de banco.
+- A estatistica de top Pokemons foi movida para agregacao em memoria para evitar dependencia de funcoes SQL exclusivas de um banco.
+- A suite de testes usa H2 para velocidade e suites dedicadas com Testcontainers para cobrir comportamento especifico de PostgreSQL e MySQL quando Docker esta disponivel.
+- O cache foi aplicado primeiro nos endpoints de leitura e estatistica que mais repetem consulta. A invalidacao e ampla por mutacao para priorizar consistencia sobre granularidade fina nesta fase.
 - O profile `local` usa `ddl-auto=update` para produtividade local, enquanto o profile base/producao trabalha com configuracao mais restritiva.
 
 ## Requisitos da vaga ja atendidos
@@ -76,6 +81,8 @@ Este repositorio ja demonstra, com implementacao real:
 - manutencao de aplicacao monolitica com separacao em camadas
 - API REST autenticada
 - consumo de integracoes REST e SOAP como cliente
+- compatibilidade real de configuracao para PostgreSQL e MySQL
+- uso de Redis em cenarios de leitura e performance
 - persistencia relacional com JPA
 - migrations e evolucao de schema com Flyway
 - preocupacao com seguranca via JWT, hashing de senha e controle de acesso
@@ -88,7 +95,6 @@ Este repositorio ja demonstra, com implementacao real:
 
 Os principais pontos ainda nao demonstrados pelo codigo atual sao:
 
-- compatibilidade real com MySQL
 - cache com Redis
 - exportacao Excel com Apache POI
 - exportacao PDF com iText
@@ -97,8 +103,6 @@ Os principais pontos ainda nao demonstrados pelo codigo atual sao:
 
 ## Proximas fases planejadas
 
-- Fase 1: compatibilidade real com MySQL, incluindo testes automatizados
-- Fase 3: cache com Redis aplicado aos endpoints de leitura e estatisticas
 - Fase 4: exportacao Excel com Apache POI
 - Fase 5: qualidade continua com SonarQube
 - Fase 6: sinal de aderencia a ambiente corporativo tradicional
@@ -125,6 +129,7 @@ src/main/java/pokemon/runs/time/leaderboard/
 ## Profiles disponiveis
 
 - `local`: desenvolvimento local com defaults para PostgreSQL, JWT e CORS
+- `mysql`: profile para executar a aplicacao com MySQL
 - `prod`: exige configuracao explicita de banco, segredo JWT e origens CORS
 - `test`: usado pela suite automatizada com H2 em memoria
 
@@ -151,6 +156,14 @@ As principais variaveis usadas pela aplicacao sao:
 - `SPRING_JPA_HIBERNATE_DDL_AUTO`
 - `API_SECURITY_TOKEN_SECRET`
 - `CORS_ALLOWED_ORIGINS`
+- `MYSQL_DATABASE`
+- `MYSQL_USER`
+- `MYSQL_PASSWORD`
+- `MYSQL_ROOT_PASSWORD`
+- `SPRING_CACHE_TYPE`
+- `SPRING_CACHE_REDIS_TTL`
+- `SPRING_DATA_REDIS_HOST`
+- `SPRING_DATA_REDIS_PORT`
 - `INTEGRATION_HTTP_CONNECT_TIMEOUT`
 - `INTEGRATION_HTTP_READ_TIMEOUT`
 - `INTEGRATION_REST_POKE_API_BASE_URL`
@@ -165,7 +178,61 @@ docker compose up --build
 O ambiente atual sobe:
 
 - `postgres`
+- `mysql`
+- `redis`
 - `leaderboard-app`
+
+### Executar com PostgreSQL
+
+Fluxo padrao do projeto:
+
+```bash
+SPRING_PROFILES_ACTIVE=local
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/leaderboard_db
+docker compose up --build
+```
+
+### Executar com MySQL
+
+Para rodar com MySQL, use o profile `mysql` e a URL do servico `mysql` no Docker Compose:
+
+```bash
+SPRING_PROFILES_ACTIVE=mysql
+SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/leaderboard_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+SPRING_DATASOURCE_USERNAME=leaderboard
+SPRING_DATASOURCE_PASSWORD=leaderboard
+docker compose up --build
+```
+
+Se estiver executando a aplicacao fora do container, troque `mysql` por `localhost` na URL.
+
+## Cache com Redis da Fase 3
+
+O cache foi aplicado nos endpoints de leitura mais repetidos do projeto:
+
+- `GET /runs`
+- `GET /runs/game/{game}`
+- `GET /runs/stats/count-by-game`
+- `GET /runs/stats/avg-time-by-game`
+- `GET /runs/stats/top-pokemons`
+
+Estrategia usada:
+
+- Redis como store de cache
+- chaves separadas por endpoint e parametros principais
+- invalidacao completa dos caches de leitura ao criar, editar ou deletar uma run
+
+Motivacao:
+
+- reduzir consultas repetidas ao banco em listagens paginadas
+- evitar recalculo constante das estatisticas agregadas
+- manter implementacao simples e consistente para demonstracao tecnica
+
+Ganho esperado:
+
+- menos round-trips ao banco em chamadas repetidas
+- menor custo de recomputacao para estatisticas
+- melhor tempo de resposta em leituras que se repetem com frequencia
 
 ### Health check
 
@@ -291,12 +358,13 @@ Cobertura atual de validacao:
 - testes unitarios de servicos, DTOs, seguranca e configuracao
 - testes de integracao de controllers
 - testes de repositorio com H2 para fluxo rapido
-- teste com PostgreSQL real via Testcontainers para migrations e queries especificas
+- testes com PostgreSQL e MySQL via Testcontainers para migrations, queries e estatisticas
 - testes de integracao cobrindo cenario feliz e falhas das integracoes REST e SOAP
+- testes de cache e invalidacao com `spring.cache.type=simple`
 
 ## Infra atual
 
-O `compose.yaml` atual sobe apenas PostgreSQL e a aplicacao Spring Boot. Redis, MySQL e SonarQube ainda nao fazem parte do ambiente local padrao porque pertencem a fases futuras.
+O `compose.yaml` atual sobe PostgreSQL, MySQL, Redis e a aplicacao Spring Boot. SonarQube ainda nao faz parte do ambiente local padrao porque pertence a fase futura.
 
 ## Checklist de entregas tecnicas
 
@@ -304,4 +372,4 @@ O acompanhamento das fases esta em `CHECKLIST.md`. A Fase 0 cobre documentacao d
 
 ## Resumo para entrevista
 
-Hoje o projeto demonstra uma API Spring Boot monolitica, autenticada e testada, com PostgreSQL, Flyway, operacao local por containers e consumo de servicos REST e SOAP externos. O proximo passo planejado e reduzir os gaps mais aderentes a vaga: MySQL, Redis e qualidade continua.
+Hoje o projeto demonstra uma API Spring Boot monolitica, autenticada e testada, com PostgreSQL, MySQL, Redis, Flyway, operacao local por containers e consumo de servicos REST e SOAP externos. O proximo passo planejado e reduzir os gaps mais aderentes a vaga: qualidade continua, relatorios e evidencias de ambiente corporativo.

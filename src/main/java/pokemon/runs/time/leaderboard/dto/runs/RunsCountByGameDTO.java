@@ -1,4 +1,5 @@
 package pokemon.runs.time.leaderboard.dto.runs;
 
-public record RunsCountByGameDTO(String game, Long count) {}
+import java.io.Serializable;
 
+public record RunsCountByGameDTO(String game, Long count) implements Serializable {}

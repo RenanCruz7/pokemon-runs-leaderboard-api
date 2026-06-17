@@ -1,0 +1,1 @@
+-- No-op kept for version alignment between PostgreSQL and MySQL migrations.

@@ -1,4 +1,5 @@
 package pokemon.runs.time.leaderboard.dto.runs;
 
-public record TopPokemonDTO(String pokemon, Long count) {}
+import java.io.Serializable;
 
+public record TopPokemonDTO(String pokemon, Long count) implements Serializable {}
