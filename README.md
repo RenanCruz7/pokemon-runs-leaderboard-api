@@ -294,6 +294,38 @@ docker compose up -d sonarqube-db sonarqube
 ./mvnw clean verify sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.token=$SONAR_TOKEN -Dsonar.qualitygate.wait=true
 ```
 
+Atalho por script:
+
+```bash
+export SONAR_TOKEN=seu_token_aqui
+./scripts/run-sonarqube-analysis.sh
+```
+
+Atalho com `make`:
+
+```bash
+export SONAR_TOKEN=seu_token_aqui
+make sonar
+```
+
+Se quiser apenas subir o SonarQube sem iniciar a analise:
+
+```bash
+make sonar-up
+```
+
+Para parar o SonarQube local depois da analise:
+
+```bash
+./scripts/stop-sonarqube.sh
+```
+
+Ou com `make`:
+
+```bash
+make sonar-down
+```
+
 Metricas acompanhadas nesta fase:
 
 - bugs
