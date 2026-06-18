@@ -1,0 +1,420 @@
+{
+  "info": {
+    "name": "Pokemon Runs Leaderboard API",
+    "_postman_id": "d2f8d7f1-6d31-4a18-a1c8-0f88e4e4a001",
+    "description": "Collection para validar o fluxo local completo da API apos `docker compose up --build`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "token", "value": "" },
+    { "key": "runId", "value": "1" },
+    { "key": "resetToken", "value": "" },
+    { "key": "username", "value": "ash" },
+    { "key": "email", "value": "ash@pokemon.com" },
+    { "key": "password", "value": "pikachu123" },
+    { "key": "newPassword", "value": "pikachu456" },
+    { "key": "pokemon", "value": "pikachu" },
+    { "key": "game", "value": "Pokemon Red" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /actuator/health",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /auth/register",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const suffix = Date.now();",
+                  "pm.collectionVariables.set('username', `ash${suffix}`);",
+                  "pm.collectionVariables.set('email', `ash${suffix}@pokemon.com`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\",\n  \"email\": \"{{email}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "POST /auth/login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('token', body.token || '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "PATCH /auth/change-password",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{token}}", "type": "string" }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{password}}\",\n  \"newPassword\": \"{{newPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "change-password"]
+            }
+          }
+        },
+        {
+          "name": "POST /auth/forgot-password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "forgot-password"]
+            },
+            "description": "A API nao retorna o token de reset. Para testar `reset-password`, obtenha o token no banco e preencha `{{resetToken}}`."
+          }
+        },
+        {
+          "name": "POST /auth/reset-password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"newPassword\": \"{{newPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "reset-password"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Runs",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          { "key": "token", "value": "{{token}}", "type": "string" }
+        ]
+      },
+      "item": [
+        {
+          "name": "POST /runs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('runId', String(body.id));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"game\": \"Pokemon Red\",\n  \"runTime\": \"2:30\",\n  \"pokedexStatus\": 150,\n  \"pokemonTeam\": [\"Pikachu\", \"Charizard\", \"Blastoise\"],\n  \"observation\": \"First speedrun attempt\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/runs",
+              "host": ["{{baseUrl}}"],
+              "path": ["runs"]
+            }
+          }
+        },
+        {
+          "name": "GET /runs",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/runs?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["runs"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /runs/me",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/runs/me?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["runs", "me"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /runs/{id}",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/runs/{{runId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["runs", "{{runId}}"]
+            }
+          }
+        },
+        {
+          "name": "PATCH /runs/{id}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"game\": \"Pokemon Yellow\",\n  \"runTime\": \"2:15\",\n  \"pokedexStatus\": 151,\n  \"pokemonTeam\": [\"Pikachu\", \"Raichu\"],\n  \"observation\": \"Updated run\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/runs/{{runId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["runs", "{{runId}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE /runs/{id}",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/runs/{{runId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["runs", "{{runId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET /runs/game/{game}",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/runs/game/{{game}}?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["runs", "game", "{{game}}"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /runs/fastest",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/runs/fastest?maxTime=5:00&page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["runs", "fastest"],
+              "query": [
+                { "key": "maxTime", "value": "5:00" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /runs/pokedex",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/runs/pokedex?minStatus=100&page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["runs", "pokedex"],
+              "query": [
+                { "key": "minStatus", "value": "100" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /runs/team",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/runs/team?pokemon=Pikachu&page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["runs", "team"],
+              "query": [
+                { "key": "pokemon", "value": "Pikachu" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /runs/stats/count-by-game",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/runs/stats/count-by-game",
+              "host": ["{{baseUrl}}"],
+              "path": ["runs", "stats", "count-by-game"]
+            }
+          }
+        },
+        {
+          "name": "GET /runs/stats/avg-time-by-game",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/runs/stats/avg-time-by-game",
+              "host": ["{{baseUrl}}"],
+              "path": ["runs", "stats", "avg-time-by-game"]
+            }
+          }
+        },
+        {
+          "name": "GET /runs/stats/top-pokemons",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/runs/stats/top-pokemons",
+              "host": ["{{baseUrl}}"],
+              "path": ["runs", "stats", "top-pokemons"]
+            }
+          }
+        },
+        {
+          "name": "GET /runs/export/csv",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/runs/export/csv",
+              "host": ["{{baseUrl}}"],
+              "path": ["runs", "export", "csv"]
+            }
+          }
+        },
+        {
+          "name": "GET /runs/export/excel",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/runs/export/excel",
+              "host": ["{{baseUrl}}"],
+              "path": ["runs", "export", "excel"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Integrations",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          { "key": "token", "value": "{{token}}", "type": "string" }
+        ]
+      },
+      "item": [
+        {
+          "name": "GET /integrations/pokemon/{pokemon}",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/integrations/pokemon/{{pokemon}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["integrations", "pokemon", "{{pokemon}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
