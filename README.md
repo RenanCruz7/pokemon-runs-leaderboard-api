@@ -278,6 +278,22 @@ O projeto agora inclui base de analise continua com SonarQube:
 - workflow de CI com etapa de analise Sonar quando `SONAR_HOST_URL` e `SONAR_TOKEN` estiverem configurados
 - stack local com `sonarqube` e `sonarqube-db` no `compose.yaml`
 
+Endereco local padrao do SonarQube:
+
+- `http://localhost:9000`
+
+Primeiro acesso local:
+
+- login inicial `admin`
+- senha inicial `admin`
+- gere o token em `My Account > Security`
+
+Observacao importante sobre CI:
+
+- `http://localhost:9000` funciona apenas na sua maquina
+- para o GitHub Actions executar a analise, o `SONAR_HOST_URL` precisa apontar para uma instancia acessivel pelo runner
+- alternativas viaveis: SonarQube com URL publica ou runner self-hosted na mesma rede/maquina do SonarQube
+
 Comando padrao de analise local:
 
 ```bash

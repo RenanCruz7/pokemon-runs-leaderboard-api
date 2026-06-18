@@ -1,12 +1,10 @@
-.PHONY: sonar-up sonar-down sonar analyze-sonar
+.PHONY: sonar sonar-up sonar-down
+
+sonar:
+	./scripts/run-sonarqube-analysis.sh
 
 sonar-up:
-	./scripts/run-sonarqube-analysis.sh
+	docker compose up -d sonarqube-db sonarqube
 
 sonar-down:
 	./scripts/stop-sonarqube.sh
-
-sonar: analyze-sonar
-
-analyze-sonar:
-	./scripts/run-sonarqube-analysis.sh
