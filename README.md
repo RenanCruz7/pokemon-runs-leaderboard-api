@@ -1,403 +1,196 @@
 # Pokemon Runs Leaderboard API
 
-API REST para gerenciamento de runs de jogos Pokemon com autenticacao JWT, persistencia relacional, filtros, estatisticas e exportacao CSV.
+API REST desenvolvida com Spring Boot para gerenciamento de runs de jogos Pokemon. O projeto demonstra autenticacao JWT, persistencia relacional, filtros, estatisticas, exportacao de dados, cache com Redis e integracoes externas REST e SOAP.
 
-## Objetivo do projeto
+## Visao Geral
 
-Este projeto serve como base tecnica para demonstrar desenvolvimento Java Web com Spring Boot em um cenario monolitico orientado a manutencao evolutiva.
+Principais capacidades da aplicacao:
 
-Na fase atual, o foco do repositorio e mostrar com clareza:
-
-- o que ja esta implementado de verdade
-- quais requisitos da vaga ja sao atendidos
-- quais gaps ainda existem
-- qual a ordem planejada de evolucao
-
-## Estado atual real
-
-Hoje a aplicacao entrega:
-
-- API REST com autenticacao JWT
-- cadastro, login, troca de senha e reset de senha por token persistido
-- CRUD de runs com validacoes e controle de ownership
+- autenticacao JWT com Spring Security
+- cadastro, login, troca de senha e reset de senha por token
+- CRUD de runs com controle de ownership
 - filtros por jogo, tempo maximo, status da Pokedex e Pokemon no time
 - estatisticas agregadas por jogo e por Pokemon
-- exportacao CSV
-- consumo de servico REST externo
-- consumo de servico SOAP externo
-- compatibilidade configurada para PostgreSQL e MySQL
-- cache com Redis para listagens e estatisticas
-- exportacao Excel com Apache POI
-- analise de qualidade com SonarQube e JaCoCo
-- migrations com Flyway
-- execucao local com Docker Compose
+- exportacao em CSV e Excel
+- integracao com PokeAPI e com servico SOAP de conversao numerica
+- suporte a PostgreSQL e MySQL
+- cache com Redis para endpoints de leitura
+- migrations versionadas com Flyway
 - health check com Spring Boot Actuator
-- testes unitarios, integracao com H2 e testes com PostgreSQL e MySQL via Testcontainers
+- testes unitarios, de integracao e com Testcontainers
 
-## Stack atual
+## Stack Tecnica
 
 - Java 21
 - Spring Boot 3.5.6
 - Spring Web
-- Spring Web Services
-- Spring Data JPA
 - Spring Security
-- Bean Validation
-- Flyway
+- Spring Data JPA
+- Spring Validation
+- Spring Web Services
+- Spring Boot Actuator
 - PostgreSQL
 - MySQL
 - Redis
+- Flyway
 - Apache POI
-- SonarQube
-- JaCoCo
-- H2 para parte da suite de testes
-- Testcontainers para validacao com PostgreSQL e MySQL reais
 - Maven
-- Docker e Docker Compose
+- Docker Compose
+- JaCoCo
+- SonarQube
+- Testcontainers
 
-## Arquitetura e responsabilidades por camada
+## Arquitetura
 
-O projeto segue uma estrutura monolitica simples, com separacao por responsabilidade:
+O projeto segue uma arquitetura monolitica em camadas, com separacao clara de responsabilidades:
 
-- `controller`: expoe endpoints REST, recebe parametros HTTP e converte respostas para DTOs
-- `service`: concentra regras de negocio, validacoes de fluxo e orquestracao entre camadas
-- `repository`: acesso a dados com Spring Data JPA e queries customizadas
-- `domain`: entidades JPA persistidas no banco
-- `dto`: contratos de entrada e saida da API
-- `infra/security`: autenticacao JWT, filtro de seguranca e configuracao do Spring Security
-- `infra/errors`: tratamento centralizado de erros e respostas padronizadas
-- `utils`: conversores auxiliares, como parse de duracao e serializacao de lista em coluna textual
-- `src/main/resources/db/migration`: versionamento do schema com Flyway
+- `controller`: endpoints REST e contrato HTTP
+- `service`: regras de negocio e orquestracao
+- `repository`: acesso a dados com Spring Data JPA
+- `domain`: entidades persistidas
+- `dto`: contratos de entrada e saida
+- `infra/security`: autenticacao JWT, filtro e configuracao de seguranca
+- `infra/errors`: tratamento centralizado de erros
+- `infra/config`: configuracoes de CORS e integracoes externas
+- `db/migration`: versionamento de schema com Flyway
 
-## Trade-offs tecnicos atuais
+Decisoes tecnicas relevantes:
 
-- O projeto usa migrations separadas por vendor no Flyway para manter compatibilidade entre PostgreSQL e MySQL sem forcar SQL artificialmente portavel.
-- O campo `pokemonTeam` e persistido em uma unica coluna textual via conversor. Isso simplifica o modelo atual, mas aumenta o custo de portabilidade e consulta.
-- A estatistica de top Pokemons foi movida para agregacao em memoria para evitar dependencia de funcoes SQL exclusivas de um banco.
-- A suite de testes usa H2 para velocidade e suites dedicadas com Testcontainers para cobrir comportamento especifico de PostgreSQL e MySQL quando Docker esta disponivel.
-- O cache foi aplicado primeiro nos endpoints de leitura e estatistica que mais repetem consulta. A invalidacao e ampla por mutacao para priorizar consistencia sobre granularidade fina nesta fase.
-- O profile `local` usa `ddl-auto=update` para produtividade local, enquanto o profile base/producao trabalha com configuracao mais restritiva.
+- autenticacao stateless com JWT
+- migrations separadas por vendor para PostgreSQL e MySQL
+- cache aplicado em consultas repetidas e estatisticas, com invalidacao por mutacao
+- integracoes externas com timeout configuravel e tratamento consistente de falhas
+- suite de testes combinando H2 para rapidez e Testcontainers para validar comportamento real de banco
 
-## Requisitos da vaga ja atendidos
-
-Este repositorio ja demonstra, com implementacao real:
-
-- desenvolvimento Java Web com Spring Boot
-- manutencao de aplicacao monolitica com separacao em camadas
-- API REST autenticada
-- consumo de integracoes REST e SOAP como cliente
-- compatibilidade real de configuracao para PostgreSQL e MySQL
-- uso de Redis em cenarios de leitura e performance
-- exportacao Excel com Apache POI
-- analise continua com SonarQube
-- persistencia relacional com JPA
-- migrations e evolucao de schema com Flyway
-- preocupacao com seguranca via JWT, hashing de senha e controle de acesso
-- tratamento centralizado de erros
-- qualidade basica com testes automatizados
-- containerizacao para execucao local
-- health check operacional
-
-## Gaps reais em relacao a vaga
-
-Os principais pontos ainda nao demonstrados pelo codigo atual sao:
-
-- exportacao PDF com iText
-- evidencia de deploy mais proxima de ambiente corporativo tradicional, como WAR ou guia para WildFly/JBoss
-
-## Proximas fases planejadas
-
-- Fase 6: sinal de aderencia a ambiente corporativo tradicional
-- Fase 7: exportacao PDF
-- Fase 8: compose expandido com stack mais completa
-- Fase 9: material final de demonstracao para entrevista
-
-## Estrutura principal
-
-```text
-src/main/java/pokemon/runs/time/leaderboard/
-|- controller/
-|- domain/
-|- dto/
-|- infra/
-|  |- config/
-|  |- errors/
-|  \- security/
-|- repository/
-|- service/
-\- utils/
-```
-
-## Profiles disponiveis
-
-- `local`: desenvolvimento local com defaults para PostgreSQL, JWT e CORS
-- `mysql`: profile para executar a aplicacao com MySQL
-- `prod`: exige configuracao explicita de banco, segredo JWT e origens CORS
-- `test`: usado pela suite automatizada com H2 em memoria
-
-## Como executar localmente
+## Como Executar
 
 ### Pre-requisitos
 
-- Docker
-- Docker Compose
+- Java 21
+- Docker e Docker Compose
+- `curl` e `jq` opcionais para os exemplos de validacao manual
 
-### Variaveis de ambiente
+### Opcao 1: Executar com Docker Compose
 
-Use `.env.example` como referencia. Para execucao local, o fluxo esperado hoje e:
-
-```bash
-SPRING_PROFILES_ACTIVE=local
-```
-
-As principais variaveis usadas pela aplicacao sao:
-
-- `SPRING_DATASOURCE_URL`
-- `SPRING_DATASOURCE_USERNAME`
-- `SPRING_DATASOURCE_PASSWORD`
-- `SPRING_JPA_HIBERNATE_DDL_AUTO`
-- `API_SECURITY_TOKEN_SECRET`
-- `CORS_ALLOWED_ORIGINS`
-- `MYSQL_DATABASE`
-- `MYSQL_USER`
-- `MYSQL_PASSWORD`
-- `MYSQL_ROOT_PASSWORD`
-- `SPRING_CACHE_TYPE`
-- `SPRING_CACHE_REDIS_TTL`
-- `SPRING_DATA_REDIS_HOST`
-- `SPRING_DATA_REDIS_PORT`
-- `SONARQUBE_DB_NAME`
-- `SONARQUBE_DB_USER`
-- `SONARQUBE_DB_PASSWORD`
-- `SONAR_HOST_URL`
-- `SONAR_TOKEN`
-- `INTEGRATION_HTTP_CONNECT_TIMEOUT`
-- `INTEGRATION_HTTP_READ_TIMEOUT`
-- `INTEGRATION_REST_POKE_API_BASE_URL`
-- `INTEGRATION_SOAP_NUMBER_CONVERSION_URL`
-
-### Subir com Docker Compose
+1. Crie um arquivo `.env` a partir de `.env.example`.
+2. Suba a stack:
 
 ```bash
 docker compose up --build
 ```
 
-O ambiente atual sobe:
-
-- `postgres`
-- `mysql`
-- `redis`
-- `sonarqube-db`
-- `sonarqube`
-- `leaderboard-app`
-
-### Executar com PostgreSQL
-
-Fluxo padrao do projeto:
-
-```bash
-SPRING_PROFILES_ACTIVE=local
-SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/leaderboard_db
-docker compose up --build
-```
-
-### Executar com MySQL
-
-Para rodar com MySQL, use o profile `mysql` e a URL do servico `mysql` no Docker Compose:
-
-```bash
-SPRING_PROFILES_ACTIVE=mysql
-SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/leaderboard_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-SPRING_DATASOURCE_USERNAME=leaderboard
-SPRING_DATASOURCE_PASSWORD=leaderboard
-docker compose up --build
-```
-
-Se estiver executando a aplicacao fora do container, troque `mysql` por `localhost` na URL.
-
-## Cache com Redis da Fase 3
-
-O cache foi aplicado nos endpoints de leitura mais repetidos do projeto:
-
-- `GET /runs`
-- `GET /runs/game/{game}`
-- `GET /runs/stats/count-by-game`
-- `GET /runs/stats/avg-time-by-game`
-- `GET /runs/stats/top-pokemons`
-
-Estrategia usada:
-
-- Redis como store de cache
-- chaves separadas por endpoint e parametros principais
-- invalidacao completa dos caches de leitura ao criar, editar ou deletar uma run
-
-Motivacao:
-
-- reduzir consultas repetidas ao banco em listagens paginadas
-- evitar recalculo constante das estatisticas agregadas
-- manter implementacao simples e consistente para demonstracao tecnica
-
-Ganho esperado:
-
-- menos round-trips ao banco em chamadas repetidas
-- menor custo de recomputacao para estatisticas
-- melhor tempo de resposta em leituras que se repetem com frequencia
-
-## Exportacao Excel da Fase 4
-
-O projeto agora expoe tambem uma exportacao corporativa em Excel:
-
-- `GET /runs/export/excel`
-
-Arquivo gerado:
-
-- `leaderboard.xlsx`
-
-Colunas incluidas:
-
-- jogador
-- jogo
-- tempo
-- pokedex
-- time
-- data de criacao
-
-Qualidade aplicada:
-
-- cabecalho em destaque
-- largura automatica por coluna
-- suporte a caracteres especiais pelo formato `.xlsx`
-- teste automatizado abrindo o workbook e validando conteudo basico
-
-## Qualidade continua da Fase 5
-
-O projeto agora inclui base de analise continua com SonarQube:
-
-- plugin Sonar no Maven
-- cobertura com JaCoCo em `verify`
-- workflow de CI com etapa de analise Sonar quando `SONAR_HOST_URL` e `SONAR_TOKEN` estiverem configurados
-- stack local com `sonarqube` e `sonarqube-db` no `compose.yaml`
-
-Endereco local padrao do SonarQube:
-
-- `http://localhost:9000`
-
-Primeiro acesso local:
-
-- login inicial `admin`
-- senha inicial `admin`
-- gere o token em `My Account > Security`
-
-Observacao importante sobre CI:
-
-- `http://localhost:9000` funciona apenas na sua maquina
-- para o GitHub Actions executar a analise, o `SONAR_HOST_URL` precisa apontar para uma instancia acessivel pelo runner
-- alternativas viaveis: SonarQube com URL publica ou runner self-hosted na mesma rede/maquina do SonarQube
-
-Comando padrao de analise local:
-
-```bash
-./mvnw clean verify sonar:sonar \
-  -Dsonar.host.url=http://localhost:9000 \
-  -Dsonar.token=$SONAR_TOKEN \
-  -Dsonar.qualitygate.wait=true
-```
-
-Fluxo local sugerido:
-
-```bash
-docker compose up -d sonarqube-db sonarqube
-./mvnw clean verify sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.token=$SONAR_TOKEN -Dsonar.qualitygate.wait=true
-```
-
-Atalho por script:
-
-```bash
-export SONAR_TOKEN=seu_token_aqui
-./scripts/run-sonarqube-analysis.sh
-```
-
-Atalho com `make`:
-
-```bash
-export SONAR_TOKEN=seu_token_aqui
-make sonar
-```
-
-Se quiser apenas subir o SonarQube sem iniciar a analise:
-
-```bash
-make sonar-up
-```
-
-Para parar o SonarQube local depois da analise:
-
-```bash
-./scripts/stop-sonarqube.sh
-```
-
-Ou com `make`:
-
-```bash
-make sonar-down
-```
-
-Metricas acompanhadas nesta fase:
-
-- bugs
-- vulnerabilidades
-- code smells
-- cobertura
-- duplicacao
-
-Melhoria real aplicada junto da fase:
-
-- cobertura ampliada com testes adicionais
-- ajuste de code smell em `User#getAuthorities` para evitar `NullPointerException`
-
-### Health check
+3. Verifique o health check:
 
 ```bash
 curl http://localhost:8080/actuator/health
 ```
 
-## Integracoes externas da Fase 2
+Servicos da stack local:
 
-O projeto agora demonstra um caso de uso simples e isolado de integracao externa:
+- `leaderboard-app`
+- `postgres`
+- `mysql`
+- `redis`
+- `sonarqube-db`
+- `sonarqube`
 
-- REST: consulta dados do Pokemon na PokeAPI
-- SOAP: converte o numero da Pokedex para texto usando o servico Number Conversion
+Por padrao, a aplicacao sobe com o profile `local` usando PostgreSQL.
 
-Fluxo exposto:
+### Opcao 2: Executar localmente com Maven
 
-- `GET /integrations/pokemon/{pokemon}`
-
-Exemplo:
+Para subir apenas a infraestrutura:
 
 ```bash
-curl -H "Authorization: Bearer $TOKEN" \
-  http://localhost:8080/integrations/pokemon/pikachu
+docker compose up -d postgres redis
 ```
 
-Resposta esperada:
+Depois execute a aplicacao:
 
-```json
-{
-  "pokemon": "pikachu",
-  "pokedexNumber": 25,
-  "pokedexNumberInWords": "twenty five",
-  "baseExperience": 112,
-  "types": ["electric"]
-}
+```bash
+SPRING_PROFILES_ACTIVE=local ./mvnw spring-boot:run
 ```
 
-Comportamento de falha:
+Para rodar com MySQL:
 
-- falha ou indisponibilidade externa retorna erro tratado e consistente
-- payload externo invalido retorna `502 Bad Gateway`
-- timeout externo e tratado na camada de cliente pelas configuracoes de timeout
+```bash
+docker compose up -d mysql redis
+SPRING_PROFILES_ACTIVE=mysql \
+SPRING_DATASOURCE_URL="jdbc:mysql://localhost:3306/leaderboard_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC" \
+SPRING_DATASOURCE_USERNAME=leaderboard \
+SPRING_DATASOURCE_PASSWORD=leaderboard \
+./mvnw spring-boot:run
+```
 
-## Endpoints principais
+Se quiser usar Redis fora do container da aplicacao, defina tambem:
+
+```bash
+SPRING_CACHE_TYPE=redis
+SPRING_DATA_REDIS_HOST=localhost
+SPRING_DATA_REDIS_PORT=6379
+```
+
+## Profiles
+
+- `local`: desenvolvimento local com defaults para PostgreSQL e configuracoes mais produtivas
+- `mysql`: executa a aplicacao com dialeto e datasource para MySQL
+- `prod`: exige configuracao explicita de banco, segredo JWT e CORS
+- `test`: usado pela suite automatizada
+
+## Variaveis de Ambiente
+
+O arquivo `.env.example` documenta os valores esperados. As variaveis abaixo sao as mais importantes para operacao e para conversa em entrevista tecnica.
+
+### Aplicacao
+
+| Variavel | Finalidade | Exemplo / Default |
+| --- | --- | --- |
+| `SPRING_PROFILES_ACTIVE` | Seleciona o profile ativo | `local`, `mysql`, `prod` |
+| `PORT` | Porta HTTP da aplicacao | `8080` |
+| `SPRING_DATASOURCE_URL` | URL de conexao do banco | `jdbc:postgresql://localhost:5432/leaderboard_db` |
+| `SPRING_DATASOURCE_USERNAME` | Usuario do banco | `postgres` |
+| `SPRING_DATASOURCE_PASSWORD` | Senha do banco | `postgres` |
+| `SPRING_JPA_HIBERNATE_DDL_AUTO` | Estrategia de schema do Hibernate | `update` no local, `validate` no base/prod |
+| `API_SECURITY_TOKEN_SECRET` | Chave usada para assinar o JWT | obrigatoria em producao |
+| `CORS_ALLOWED_ORIGINS` | Origens permitidas para CORS | `http://localhost:*` |
+
+### Cache e Redis
+
+| Variavel | Finalidade | Exemplo / Default |
+| --- | --- | --- |
+| `SPRING_CACHE_TYPE` | Liga ou desliga cache | `none` ou `redis` |
+| `SPRING_CACHE_REDIS_TTL` | TTL das entradas de cache | `10m` |
+| `SPRING_DATA_REDIS_HOST` | Host do Redis | `redis` no Compose, `localhost` fora dele |
+| `SPRING_DATA_REDIS_PORT` | Porta do Redis | `6379` |
+
+### Integracoes externas
+
+| Variavel | Finalidade | Exemplo / Default |
+| --- | --- | --- |
+| `INTEGRATION_HTTP_CONNECT_TIMEOUT` | Timeout de conexao HTTP | `3s` |
+| `INTEGRATION_HTTP_READ_TIMEOUT` | Timeout de leitura HTTP | `5s` |
+| `INTEGRATION_REST_POKE_API_BASE_URL` | Base URL da PokeAPI | `https://pokeapi.co/api/v2` |
+| `INTEGRATION_SOAP_NUMBER_CONVERSION_URL` | Endpoint SOAP de conversao numerica | `https://www.dataaccess.com/webservicesserver/NumberConversion.wso` |
+
+### Variaveis da stack Docker
+
+Essas variaveis sao usadas principalmente pelos containers auxiliares do `compose.yaml`:
+
+- `POSTGRES_DB`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `MYSQL_DATABASE`
+- `MYSQL_USER`
+- `MYSQL_PASSWORD`
+- `MYSQL_ROOT_PASSWORD`
+- `SONARQUBE_DB_NAME`
+- `SONARQUBE_DB_USER`
+- `SONARQUBE_DB_PASSWORD`
+- `SONAR_HOST_URL`
+- `SONAR_TOKEN`
+
+Observacao importante: `SPRING_DATASOURCE_*` configura a aplicacao Spring; `POSTGRES_*`, `MYSQL_*` e `SONARQUBE_DB_*` configuram os containers de infraestrutura.
+
+## Endpoints Principais
 
 ### Publicos
 
@@ -407,7 +200,7 @@ Comportamento de falha:
 - `POST /auth/reset-password`
 - `GET /actuator/health`
 
-### Protegidos
+### Protegidos por JWT
 
 - `PATCH /auth/change-password`
 - `GET /integrations/pokemon/{pokemon}`
@@ -427,9 +220,9 @@ Comportamento de falha:
 - `GET /runs/export/csv`
 - `GET /runs/export/excel`
 
-## Fluxo rapido de validacao
+## Fluxo Rapido de Uso
 
-### Registrar usuario
+### 1. Registrar usuario
 
 ```bash
 curl -X POST http://localhost:8080/auth/register \
@@ -441,7 +234,7 @@ curl -X POST http://localhost:8080/auth/register \
   }'
 ```
 
-### Login
+### 2. Fazer login
 
 ```bash
 TOKEN=$(curl -s -X POST http://localhost:8080/auth/login \
@@ -452,7 +245,7 @@ TOKEN=$(curl -s -X POST http://localhost:8080/auth/login \
   }' | jq -r .token)
 ```
 
-### Criar run
+### 3. Criar uma run
 
 ```bash
 curl -X POST http://localhost:8080/runs \
@@ -467,33 +260,52 @@ curl -X POST http://localhost:8080/runs \
   }'
 ```
 
-## Testes
+### 4. Consultar integracao externa
 
-Executar a suite principal:
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8080/integrations/pokemon/pikachu
+```
+
+## Testes e Qualidade
+
+Executar testes:
 
 ```bash
 ./mvnw test
 ```
 
-Cobertura atual de validacao:
+Executar validacao completa com cobertura:
 
-- testes unitarios de servicos, DTOs, seguranca e configuracao
-- testes de integracao de controllers
-- testes de repositorio com H2 para fluxo rapido
-- testes com PostgreSQL e MySQL via Testcontainers para migrations, queries e estatisticas
-- testes de integracao cobrindo cenario feliz e falhas das integracoes REST e SOAP
-- testes de cache e invalidacao com `spring.cache.type=simple`
-- testes da geracao e exposicao do arquivo Excel
-- relatorio de cobertura JaCoCo gerado no ciclo `verify`
+```bash
+./mvnw verify
+```
 
-## Infra atual
+Rodar analise SonarQube local:
 
-O `compose.yaml` atual sobe PostgreSQL, MySQL, Redis, SonarQube e a aplicacao Spring Boot.
+```bash
+make sonar-up
+make sonar
+make sonar-down
+```
 
-## Checklist de entregas tecnicas
+Observacoes:
 
-O acompanhamento das fases esta em `CHECKLIST.md`. A Fase 0 cobre documentacao de baseline, narrativa tecnica e alinhamento entre README, estado real do codigo e proximas entregas.
+- os testes usam o profile `test`
+- parte da suite depende de Docker para Testcontainers
+- o SonarQube local fica disponivel em `http://localhost:9000`
 
-## Resumo para entrevista
+## Pontos Relevantes Para Entrevista Tecnica
 
-Hoje o projeto demonstra uma API Spring Boot monolitica, autenticada e testada, com PostgreSQL, MySQL, Redis, SonarQube, Flyway, operacao local por containers, consumo de servicos REST e SOAP externos e exportacao Excel. O proximo passo planejado e reduzir os gaps mais aderentes a vaga: PDF e evidencias de ambiente corporativo.
+- seguranca: autenticacao stateless com JWT, rotas protegidas e senhas com hashing
+- persistencia: uso de JPA com Flyway e compatibilidade real entre PostgreSQL e MySQL
+- cache: Redis aplicado em endpoints de leitura e estatisticas, com foco em consistencia na invalidacao
+- integracoes: combinacao de cliente REST e cliente SOAP com timeouts configuraveis e tratamento centralizado de erro
+- arquitetura: separacao por camadas para manter o monolito simples e evolutivo
+- observabilidade basica: endpoint de health check e stack local containerizada
+- qualidade: testes de unidade, integracao, repositorio e cenarios com bancos reais via Testcontainers
+- exportacao de dados: suporte a CSV e Excel usando Apache POI
+
+## Resumo
+
+Este projeto apresenta uma API Spring Boot pronta para demonstracao tecnica, cobrindo autenticacao, persistencia relacional, cache, integracoes externas, exportacao de dados, testes automatizados e execucao local com containers.
